@@ -62,7 +62,7 @@
 <div class="admin-wrapper">
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <img src="{{ asset('assets/img/logo.svg') }}" alt="Logo">
+            <img src="/images/new-logo.png" alt="Logo">
             <span>Админ-панель</span>
         </div>
         <ul class="sidebar-menu">
