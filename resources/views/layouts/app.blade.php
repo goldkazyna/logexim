@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}?t={{ time() }}">
     <title>@yield('title', 'Logexim Express - Быстрая и надёжная доставка грузов по Казахстану')</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <style>.logo__icon { width: 104px; height: auto; }</style>
     @stack('styles')
 </head>
 <body class="">
