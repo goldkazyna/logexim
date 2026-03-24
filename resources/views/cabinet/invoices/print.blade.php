@@ -34,7 +34,7 @@
                 <p>E-mail: sale@logexim.kz</p>
             </div>
             <div class="header-col-center">
-                <img src="/css/logo.png" alt="Logo">
+                <img src="/images/new-logo.png" alt="Logo">
             </div>
             <div class="header-col header-col-right">
                 <div class="invoice-number">НАКЛАДНАЯ № {{ $invoice->invoice_number }}</div>
