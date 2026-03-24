@@ -33,9 +33,6 @@
         <div class="modal-panel__header">
             <a href="/" class="logo">
                 <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
-                <span class="logo__name">
-                    <span class="logo__top">LOGEXIM EXPRESS</span>
-                </span>
             </a>
         </div>
 
@@ -78,10 +75,6 @@
                     <div class="header-top__logo">
                         <a href="/" class="logo">
                             <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
-                            <span class="logo__name">
-                                <span class="logo__top">LOGEXIM EXPRESS</span>
-                                <span class="logo__bottom">Перевозки от&nbsp;двери до&nbsp;двери</span>
-                            </span>
                         </a>
                     </div>
                     <div class="header-top__phones">
@@ -119,9 +112,6 @@
                 <div class="header-bottom__wrapper">
                     <a href="/" class="logo logo_sticky">
                         <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
-                        <span class="logo__name">
-                            <span class="logo__top">LOGEXIM EXPRESS</span>
-                        </span>
                     </a>
                     <nav class="nav-main">
                         <ul class="nav-main__menu">
@@ -174,10 +164,6 @@
                 <div class="footer__logo">
                     <a href="/" class="logo">
                         <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
-                        <span class="logo__name">
-                            <span class="logo__top">LOGEXIM EXPRESS</span>
-                            <span class="logo__bottom">Перевозки от двери до двери</span>
-                        </span>
                     </a>
                 </div>
                 <div class="footer__nav">
