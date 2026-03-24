@@ -19,7 +19,7 @@
 </head>
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-<body onload="JsBarcode('#barcode','{{ $invoice->invoice_number }}',{displayValue:false,width:2,height:50,margin:0});window.print()">
+<body onload="JsBarcode('#barcode','{{ $invoice->invoice_number }}',{displayValue:false,width:1.2,height:35,margin:0});window.print()">
 
 <div class="wrapper">
 
