@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer --version)",
+      "Bash(php --version)",
+      "Bash(composer create-project:*)",
+      "Bash(cp -r /c/projects/logexim-temp/* /c/projects/logexim-b/)",
+      "Bash(cp /c/projects/logexim-temp/.env /c/projects/logexim-b/)",
+      "Bash(cp /c/projects/logexim-temp/.env.example /c/projects/logexim-b/)",
+      "Bash(cp /c/projects/logexim-temp/.editorconfig /c/projects/logexim-b/)",
+      "Bash(cp /c/projects/logexim-temp/.gitignore /c/projects/logexim-b/)",
+      "Bash(rm -rf /c/projects/logexim-temp)",
+      "Bash(php /c/projects/logexim-b/artisan --version)",
+      "Bash(php artisan:*)",
+      "Bash(composer require:*)",
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

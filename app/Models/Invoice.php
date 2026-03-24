@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Invoice extends Model
+{
+    protected $table = 'invoices';
+    public $timestamps = false;
+
+    protected $fillable = [
+        'invoice_number', 'status', 'user_id', 'date',
+        'sender_name', 'sender_phone', 'sender_company',
+        'sender_city', 'sender_country', 'sender_region', 'sender_district', 'sender_address',
+        'recipient_name', 'recipient_phone', 'recipient_company',
+        'recipient_city', 'recipient_country', 'recipient_region', 'recipient_district', 'recipient_address',
+        'description', 'quantity', 'weight', 'volume_weight',
+        'fragile', 'declared_value', 'payment',
+        'payment_sender', 'payment_recipient', 'payment_contract', 'payment_invoice', 'payment_cash',
+        'fact_date', 'plan_date', 'special',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}

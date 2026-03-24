@@ -1,0 +1,26 @@
+// Миксины
+@import "presets/mixins";
+
+// Иконочный шрифт
+@import url(../fonts/logexim.css);
+
+// Настройки
+@import "_settings";
+
+// Обнуление
+@import "presets/_nulled";
+
+// Общие стили
+@import "_common";
+
+// Стили форм
+@import "_forms";
+
+// Стили шапки
+@import "_header";
+
+// Стили секций
+@import "_sections";
+
+// Стили подвала
+@import "_footer";
