@@ -37,7 +37,7 @@
             </div>
             <div class="header-col header-col-right">
                 <div class="invoice-number">НАКЛАДНАЯ № {{ $invoice->invoice_number }}</div>
-                <img class="barcode-img" src="https://barcodeapi.org/api/128/{{ $invoice->invoice_number }}" alt="{{ $invoice->invoice_number }}" style="height:50px;width:200px">
+                <div style="overflow:hidden;height:40px;width:200px;display:inline-block"><img src="https://barcodeapi.org/api/128/{{ $invoice->invoice_number }}" alt="{{ $invoice->invoice_number }}" style="height:50px;width:200px"></div>
             </div>
         </div>
         <div class="main">
