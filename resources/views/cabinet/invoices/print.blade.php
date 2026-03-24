@@ -5,15 +5,15 @@
     <link rel="stylesheet" href="/css/invoice.css">
     <title>Накладная № {{ $invoice->invoice_number }}</title>
     <style>
-        .header-new { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .header-left { font-size: 10px; line-height: 1.4; max-width: 45%; }
-        .header-left h3 { font-size: 11px; margin: 0 0 2px; }
-        .header-left p { margin: 0; }
-        .header-left .separator { border-top: 1px solid #000; margin: 6px 0; }
+        .header-new { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        .header-left { font-size: 9px; line-height: 1.3; max-width: 50%; display: flex; gap: 10px; align-items: flex-start; }
+        .header-left .header-logo { flex-shrink: 0; }
+        .header-left .header-logo img { height: 40px; }
+        .header-info p { margin: 0; }
+        .header-info .company-name { font-weight: bold; font-size: 10px; }
         .header-right { text-align: right; }
-        .header-right .invoice-number { font-size: 22px; font-weight: bold; margin-bottom: 8px; }
-        .header-right .invoice-number span { font-size: 22px; }
-        .barcode-img { margin-top: 5px; }
+        .header-right .invoice-number { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .barcode-img { margin-top: 3px; }
     </style>
 </head>
 
@@ -24,16 +24,14 @@
     <div class="invoice">
         <div class="header-new">
             <div class="header-left">
-                <h3>Офис:</h3>
-                <p>ТОО «LogExim Express», БИН 211040031302</p>
-                <p>Адрес: 050011, РК, г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
-                <p>Тел: +7 727 320 96 69; E-mail: sale@logexim.kz</p>
-                <div class="separator"></div>
-                <h3>Склад:</h3>
-                <p>ТОО «LogExim Express»</p>
-                <p>Адрес: 050011, РК, г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
-                <p>Тел: +7 727 320 96 69; E-mail: sale@logexim.kz</p>
-                <p style="font-weight:bold;margin-top:4px">+7 707 230 15 65 (WhatsApp)</p>
+                <div class="header-logo"><img src="/css/logo.png" alt="Logo"></div>
+                <div class="header-info">
+                    <p class="company-name">ТОО «LogExim Express», БИН 211040031302</p>
+                    <p>Офис: 050011, РК, г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
+                    <p>Склад: РК, г.Алматы, трасса Алматы-Усть-Каменогорск, ул. Аксуат 110</p>
+                    <p>Тел: +7 727 320 96 69 | +7 707 230 15 65 (WhatsApp)</p>
+                    <p>E-mail: sale@logexim.kz</p>
+                </div>
             </div>
             <div class="header-right">
                 <div class="invoice-number">НАКЛАДНАЯ № <span>{{ $invoice->invoice_number }}</span></div>
