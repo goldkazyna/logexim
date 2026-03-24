@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="login-container">
-    <img src="{{ asset('assets/img/logo.svg') }}" alt="Logo" style="height:50px;margin-bottom:15px">
+    <img src="/images/new-logo.png" alt="Logo" style="height:50px;margin-bottom:15px">
     <h1>Админ-панель</h1>
     <form action="{{ url('/admin/auth') }}" method="post">
         @csrf

@@ -20,7 +20,7 @@
 </head>
 <body>
 <div class="login-container">
-    <img src="{{ asset('assets/img/logo.svg') }}" alt="Логотип"/>
+    <img src="/images/new-logo.png" alt="Логотип"/>
     <h1>Регистрация</h1>
     <p>Чтобы воспользоваться личным кабинетом, вам необходимо отправить заявку на регистрацию. После успешного прохождения <b>модерации</b>, доступ к личному кабинету будет открыт.</p>
     <form action="{{ url('/cabinet/registration') }}" method="post">

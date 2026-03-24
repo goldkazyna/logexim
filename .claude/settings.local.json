@@ -19,7 +19,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git remote:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(find resources/views -name \"*.blade.php\" -exec sed -i \"s|{{ asset\\(''assets/img/logo.svg''\\) }}|/images/new-logo.png|g\" {} +)",
+      "Bash(find resources/views -name \"*.blade.php\" -exec sed -i 's|/assets/img/logo.svg|/images/new-logo.png|g' {} +)"
     ]
   }
 }

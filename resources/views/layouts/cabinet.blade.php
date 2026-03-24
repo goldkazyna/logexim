@@ -18,7 +18,7 @@
         <aside id="app-menu" class="hs-overlay fixed inset-y-0 start-0 z-[60] hidden w-64 -translate-x-full transform overflow-y-auto border-e border-default-200 bg-white transition-all duration-300 hs-overlay-open:translate-x-0 lg:bottom-0 lg:end-auto lg:z-30 lg:block lg:translate-x-0 rtl:translate-x-full rtl:hs-overlay-open:translate-x-0 rtl:lg:translate-x-0 print:hidden [--body-scroll:true] [--overlay-backdrop:true] lg:[--overlay-backdrop:false]">
             <div class="sticky top-0 flex h-18 items-center justify-center px-6 logo_1">
                 <a href="/" class="logo">
-                    <img src="{{ asset('assets/img/logo.svg') }}" alt="Logexim Express" class="logo__icon">
+                    <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
                     <span class="logo__name">
                         <span class="logo__top">LOGEXIM EXPRESS</span><br>
                         <span class="logo__bottom">Личный кабинет</span>
@@ -70,7 +70,7 @@
         <div class="page-content">
             <header class="sticky top-0 bg-white h-16 flex items-center px-5 gap-4 z-50">
                 <a href="/cabinet" class="md:hidden flex">
-                    <img src="{{ asset('assets/img/logo.svg') }}" class="h-6" alt="Logo">
+                    <img src="/images/new-logo.png" class="h-6" alt="Logo">
                 </a>
                 <button id="button-toggle-menu" class="text-gray-500 hover:text-gray-600 p-2 rounded-full cursor-pointer" data-hs-overlay="#app-menu">
                     <i class="ti ti-menu-2 text-2xl"></i>

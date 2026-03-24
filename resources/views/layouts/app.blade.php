@@ -32,7 +32,7 @@
         </a>
         <div class="modal-panel__header">
             <a href="/" class="logo">
-                <img src="{{ asset('assets/img/logo.svg') }}" alt="Logexim Express" class="logo__icon">
+                <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
                 <span class="logo__name">
                     <span class="logo__top">LOGEXIM EXPRESS</span>
                 </span>
@@ -77,7 +77,7 @@
                 <div class="header-top__wrapper">
                     <div class="header-top__logo">
                         <a href="/" class="logo">
-                            <img src="{{ asset('assets/img/logo.svg') }}" alt="Logexim Express" class="logo__icon">
+                            <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
                             <span class="logo__name">
                                 <span class="logo__top">LOGEXIM EXPRESS</span>
                                 <span class="logo__bottom">Перевозки от&nbsp;двери до&nbsp;двери</span>
@@ -118,7 +118,7 @@
             <div class="container">
                 <div class="header-bottom__wrapper">
                     <a href="/" class="logo logo_sticky">
-                        <img src="{{ asset('assets/img/logo.svg') }}" alt="Logexim Express" class="logo__icon">
+                        <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
                         <span class="logo__name">
                             <span class="logo__top">LOGEXIM EXPRESS</span>
                         </span>
@@ -173,7 +173,7 @@
             <div class="footer__main">
                 <div class="footer__logo">
                     <a href="/" class="logo">
-                        <img src="{{ asset('assets/img/logo.svg') }}" alt="Logexim Express" class="logo__icon">
+                        <img src="/images/new-logo.png" alt="Logexim Express" class="logo__icon">
                         <span class="logo__name">
                             <span class="logo__top">LOGEXIM EXPRESS</span>
                             <span class="logo__bottom">Перевозки от двери до двери</span>

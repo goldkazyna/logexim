@@ -16,7 +16,7 @@
 </head>
 <body>
 <div class="login-container">
-    <img src="{{ asset('assets/img/logo.svg') }}" alt="Логотип"/>
+    <img src="/images/new-logo.png" alt="Логотип"/>
     <h1>Восстановление пароля</h1>
     <form action="{{ url('/cabinet/recovery') }}" method="post">
         @csrf
