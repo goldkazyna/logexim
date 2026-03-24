@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="/css/invoice.css">
     <title>Накладная № {{ $invoice->invoice_number }}</title>
+    <style>
+        .header-new { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .header-left { font-size: 10px; line-height: 1.4; max-width: 45%; }
+        .header-left h3 { font-size: 11px; margin: 0 0 2px; }
+        .header-left p { margin: 0; }
+        .header-left .separator { border-top: 1px solid #000; margin: 6px 0; }
+        .header-right { text-align: right; }
+        .header-right .invoice-number { font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+        .header-right .invoice-number span { font-size: 22px; }
+        .barcode-img { margin-top: 5px; }
+    </style>
 </head>
 
 <body onload="window.print()">
@@ -11,30 +22,22 @@
 <div class="wrapper">
 
     <div class="invoice">
-        <div class="header">
-            <div class="header__col">
+        <div class="header-new">
+            <div class="header-left">
                 <h3>Офис:</h3>
                 <p>ТОО «LogExim Express», БИН 211040031302</p>
-                <p>Адрес: 050011, Республика Казахстан, г.Алматы, ул.Нурмакова 1/1 офис 407</p>
-                <p>Телефон: +7 727 320 96 69; E-mail: sale@logexim.kz</p>
-
-                <div class="header__title">
-                    <h1>Накладная №</h1> <p>{{ $invoice->invoice_number }}</p>
-                </div>
-            </div>
-            <div class="header__col">
-                <div class="header__logo"><img src="/css/logo.png" alt="Logo"></div>
-            </div>
-
-            <div class="header__col">
+                <p>Адрес: 050011, РК, г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
+                <p>Тел: +7 727 320 96 69; E-mail: sale@logexim.kz</p>
+                <div class="separator"></div>
                 <h3>Склад:</h3>
                 <p>ТОО «LogExim Express»</p>
-                <p>Адрес: 050011, Республика Казахстан, г.Алматы, ул.Нурмакова 1/1 офис 407</p>
-                <p>Телефон: +7 727 320 96 69; E-mail: sale@logexim.kz</p>
-
-                <div class="header__contact">
-                    <span>+7 707 230 15 65 (WhatsApp)</span>
-                </div>
+                <p>Адрес: 050011, РК, г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
+                <p>Тел: +7 727 320 96 69; E-mail: sale@logexim.kz</p>
+                <p style="font-weight:bold;margin-top:4px">+7 707 230 15 65 (WhatsApp)</p>
+            </div>
+            <div class="header-right">
+                <div class="invoice-number">НАКЛАДНАЯ № <span>{{ $invoice->invoice_number }}</span></div>
+                <img class="barcode-img" src="https://barcodeapi.org/api/128/{{ $invoice->invoice_number }}" alt="Штрихкод {{ $invoice->invoice_number }}" style="height:50px">
             </div>
         </div>
         <div class="main">
