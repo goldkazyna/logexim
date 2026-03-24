@@ -5,10 +5,10 @@
     <link rel="stylesheet" href="/css/invoice.css">
     <title>Накладная № {{ $invoice->invoice_number }}</title>
     <style>
+        .header-top-logo { text-align: center; margin-bottom: 5px; }
+        .header-top-logo img { height: 45px; }
         .header-new { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
-        .header-left { font-size: 9px; line-height: 1.3; max-width: 50%; display: flex; gap: 10px; align-items: flex-start; }
-        .header-left .header-logo { flex-shrink: 0; }
-        .header-left .header-logo img { height: 40px; }
+        .header-left { font-size: 9px; line-height: 1.3; max-width: 50%; }
         .header-info p { margin: 0; }
         .header-info .company-name { font-weight: bold; font-size: 10px; }
         .header-right { text-align: right; }
@@ -22,9 +22,9 @@
 <div class="wrapper">
 
     <div class="invoice">
+        <div class="header-top-logo"><img src="/css/logo.png" alt="Logo"></div>
         <div class="header-new">
             <div class="header-left">
-                <div class="header-logo"><img src="/css/logo.png" alt="Logo"></div>
                 <div class="header-info">
                     <p class="company-name">ТОО «LogExim Express», БИН 211040031302</p>
                     <p>Офис: 050011, РК, г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
@@ -35,7 +35,7 @@
             </div>
             <div class="header-right">
                 <div class="invoice-number">НАКЛАДНАЯ № <span>{{ $invoice->invoice_number }}</span></div>
-                <img class="barcode-img" src="https://barcodeapi.org/api/128/{{ $invoice->invoice_number }}" alt="Штрихкод {{ $invoice->invoice_number }}" style="height:50px">
+                <img class="barcode-img" src="https://barcodeapi.org/api/128/{{ $invoice->invoice_number }}" alt="Штрихкод {{ $invoice->invoice_number }}" style="height:55px;width:220px">
             </div>
         </div>
         <div class="main">
