@@ -11,7 +11,7 @@
         .header-col-left p { margin: 0; }
         .header-col-left .company-name { font-weight: bold; font-size: 10px; }
         .header-col-center { text-align: center; flex: 0 0 auto; padding: 0 10px; }
-        .header-col-center img { height: 50px; }
+        .header-col-center img { height: 60px; }
         .header-col-right { text-align: right; }
         .header-col-right .invoice-number { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .barcode-img { margin-top: 3px; }
