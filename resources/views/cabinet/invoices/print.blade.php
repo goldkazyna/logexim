@@ -18,7 +18,8 @@
     </style>
 </head>
 
-<body onload="window.print()">
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<body onload="JsBarcode('#barcode','{{ $invoice->invoice_number }}',{displayValue:false,width:2,height:50,margin:0});window.print()">
 
 <div class="wrapper">
 
@@ -37,7 +38,7 @@
             </div>
             <div class="header-col header-col-right">
                 <div class="invoice-number">НАКЛАДНАЯ № {{ $invoice->invoice_number }}</div>
-                <div style="overflow:hidden;height:40px;width:200px;display:inline-block"><img src="https://barcodeapi.org/api/128/{{ $invoice->invoice_number }}" alt="{{ $invoice->invoice_number }}" style="height:50px;width:200px"></div>
+                <svg id="barcode"></svg>
             </div>
         </div>
         <div class="main">
