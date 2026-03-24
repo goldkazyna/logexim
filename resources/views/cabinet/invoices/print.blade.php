@@ -5,14 +5,15 @@
     <link rel="stylesheet" href="/css/invoice.css">
     <title>Накладная № {{ $invoice->invoice_number }}</title>
     <style>
-        .header-top-logo { text-align: center; margin-bottom: 5px; }
-        .header-top-logo img { height: 45px; }
-        .header-new { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
-        .header-left { font-size: 9px; line-height: 1.3; max-width: 50%; }
-        .header-info p { margin: 0; }
-        .header-info .company-name { font-weight: bold; font-size: 10px; }
-        .header-right { text-align: right; }
-        .header-right .invoice-number { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .header-new { display: flex; align-items: flex-start; margin-bottom: 5px; }
+        .header-col { flex: 1; }
+        .header-col-left { font-size: 9px; line-height: 1.3; }
+        .header-col-left p { margin: 0; }
+        .header-col-left .company-name { font-weight: bold; font-size: 10px; }
+        .header-col-center { text-align: center; flex: 0 0 auto; padding: 0 10px; }
+        .header-col-center img { height: 50px; }
+        .header-col-right { text-align: right; }
+        .header-col-right .invoice-number { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .barcode-img { margin-top: 3px; }
     </style>
 </head>
@@ -22,20 +23,21 @@
 <div class="wrapper">
 
     <div class="invoice">
-        <div class="header-top-logo"><img src="/css/logo.png" alt="Logo"></div>
         <div class="header-new">
-            <div class="header-left">
-                <div class="header-info">
-                    <p class="company-name">ТОО «LogExim Express», БИН 211040031302</p>
-                    <p>Офис: 050011, РК, г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
-                    <p>Склад: РК, г.Алматы, трасса Алматы-Усть-Каменогорск, ул. Аксуат 110</p>
-                    <p>Тел: +7 727 320 96 69 | +7 707 230 15 65 (WhatsApp)</p>
-                    <p>E-mail: sale@logexim.kz</p>
-                </div>
+            <div class="header-col header-col-left">
+                <p class="company-name">ТОО «LogExim Express»</p>
+                <p>БИН 211040031302</p>
+                <p>Офис: г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
+                <p>Склад: трасса Алматы-Усть-Каменогорск, ул. Аксуат 110</p>
+                <p>Тел: +7 727 320 96 69 | +7 707 230 15 65</p>
+                <p>E-mail: sale@logexim.kz</p>
             </div>
-            <div class="header-right">
-                <div class="invoice-number">НАКЛАДНАЯ № <span>{{ $invoice->invoice_number }}</span></div>
-                <img class="barcode-img" src="https://barcodeapi.org/api/128/{{ $invoice->invoice_number }}" alt="Штрихкод {{ $invoice->invoice_number }}" style="height:55px;width:220px">
+            <div class="header-col-center">
+                <img src="/css/logo.png" alt="Logo">
+            </div>
+            <div class="header-col header-col-right">
+                <div class="invoice-number">НАКЛАДНАЯ № {{ $invoice->invoice_number }}</div>
+                <img class="barcode-img" src="https://barcodeapi.org/api/128/{{ $invoice->invoice_number }}" alt="{{ $invoice->invoice_number }}" style="height:50px;width:200px">
             </div>
         </div>
         <div class="main">
