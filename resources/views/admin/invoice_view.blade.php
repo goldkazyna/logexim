@@ -9,6 +9,10 @@
     .inv-back { margin-bottom: 20px; }
     .inv-back a { color: #D0171C; text-decoration: none; font-weight: 600; }
     .inv-back a:hover { text-decoration: underline; }
+    .inv-edit-input { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 14px; font-weight: 600; width: 150px; }
+    .inv-save-btn { background: #D0171C; color: #fff; border: none; border-radius: 6px; padding: 8px 24px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+    .inv-save-btn:hover { background: #a01215; }
+    .inv-success { color: #28a745; font-weight: 600; margin-left: 10px; display: none; }
 </style>
 @endpush
 @section('content')
@@ -43,14 +47,12 @@
         <div class="inv-row"><div class="label">Описание вложения:</div><div class="value">{{ $invoice->description }}</div></div>
         <div class="inv-row"><div class="label">Количество мест:</div><div class="value">{{ $invoice->quantity }}</div></div>
         <div class="inv-row"><div class="label">Вес (кг):</div><div class="value">{{ $invoice->weight }}</div></div>
-        <div class="inv-row"><div class="label">Объёмный вес (кг):</div><div class="value">{{ $invoice->volume_weight }}</div></div>
+        <div class="inv-row"><div class="label">Объёмный вес (кг):</div><div class="value"><input type="number" step="0.01" name="volume_weight" class="inv-edit-input" value="{{ $invoice->volume_weight }}" form="edit-invoice-form"></div></div>
         <div class="inv-row"><div class="label">Хрупкий груз:</div><div class="value">{{ $invoice->fragile ? 'Да' : 'Нет' }}</div></div>
 
         <div class="inv-section">Информация об оплате</div>
         <div class="inv-row"><div class="label">Объявленная ценность:</div><div class="value">{{ $invoice->declared_value }} KZT</div></div>
-        @if($invoice->payment)
-        <div class="inv-row"><div class="label">Сумма оплаты:</div><div class="value">{{ $invoice->payment }} KZT</div></div>
-        @endif
+        <div class="inv-row"><div class="label">Сумма оплаты (KZT):</div><div class="value"><input type="number" step="0.01" name="payment" class="inv-edit-input" value="{{ $invoice->payment }}" form="edit-invoice-form"></div></div>
         <div class="inv-row"><div class="label">Способ оплаты:</div><div class="value">
             @php
                 $m = [];
@@ -64,6 +66,18 @@
         </div></div>
         @if($invoice->special)
         <div class="inv-row"><div class="label">Особые инструкции:</div><div class="value">{{ $invoice->special }}</div></div>
+        @endif
+
+        <div class="inv-section">Доставка</div>
+        <div class="inv-row"><div class="label">Доставка по договору:</div><div class="value"><input type="date" name="plan_date" class="inv-edit-input" value="{{ $invoice->plan_date }}" form="edit-invoice-form" style="width:180px"></div></div>
+        <div class="inv-row"><div class="label">Фактическая доставка:</div><div class="value"><input type="date" name="fact_date" class="inv-edit-input" value="{{ $invoice->fact_date }}" form="edit-invoice-form" style="width:180px"></div></div>
+
+        <form id="edit-invoice-form" action="/admin/invoices/update/{{ $invoice->id }}" method="post">
+            @csrf
+            <button type="submit" class="inv-save-btn">Сохранить изменения</button>
+        </form>
+        @if(session('success'))
+        <span class="inv-success" style="display:inline">{{ session('success') }}</span>
         @endif
     </div>
 </div>

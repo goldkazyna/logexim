@@ -58,6 +58,7 @@ Route::get('/admin/invoices/check-new', [AdminController::class, 'checkNewInvoic
 Route::get('/admin/invoices', [AdminController::class, 'invoices']);
 Route::get('/admin/invoices/view/{id}', [AdminController::class, 'viewInvoice']);
 Route::post('/admin/invoices/status/{id}', [AdminController::class, 'updateInvoiceStatus']);
+Route::post('/admin/invoices/update/{id}', [AdminController::class, 'updateInvoice']);
 Route::get('/admin/orders', [AdminController::class, 'orders']);
 Route::get('/admin/orders/create', [AdminController::class, 'createOrder']);
 Route::post('/admin/orders/store', [AdminController::class, 'storeOrder']);

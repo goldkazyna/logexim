@@ -138,6 +138,18 @@ class AdminController extends Controller
         return redirect('/admin/invoices')->with('success', 'Статус обновлён');
     }
 
+    public function updateInvoice(Request $request, $id)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        Invoice::where('id', $id)->update([
+            'volume_weight' => $request->input('volume_weight'),
+            'payment' => $request->input('payment'),
+            'plan_date' => $request->input('plan_date'),
+            'fact_date' => $request->input('fact_date'),
+        ]);
+        return redirect('/admin/invoices/view/' . $id)->with('success', 'Данные сохранены');
+    }
+
     // === ORDERS ===
     public function orders()
     {
