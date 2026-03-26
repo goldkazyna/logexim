@@ -44,7 +44,7 @@
                 <a href="{{ url('cabinet/create_invoice') }}" class="btn btn-primary common_btn">Добавить накладную</a>
                 <div class="search-wrapper">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="invoice-search" class="search-input" placeholder="Поиск по номеру накладной..." autocomplete="off">
+                    <input type="text" id="invoice-search" class="search-input" placeholder="Поиск по номеру, отправителю, получателю..." autocomplete="off">
                 </div>
             </div>
             <br />

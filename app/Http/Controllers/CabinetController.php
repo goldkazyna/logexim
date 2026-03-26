@@ -119,7 +119,13 @@ class CabinetController extends Controller
         if ($request->ajax() && $request->has('search')) {
             $search = $request->input('search');
             if ($search !== '') {
-                $query->where('invoice_number', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('invoice_number', 'like', "%{$search}%")
+                      ->orWhere('sender_name', 'like', "%{$search}%")
+                      ->orWhere('sender_company', 'like', "%{$search}%")
+                      ->orWhere('recipient_name', 'like', "%{$search}%")
+                      ->orWhere('recipient_company', 'like', "%{$search}%");
+                });
             }
             $invoices = $query->paginate(15);
             return view('cabinet.invoices._table', compact('invoices'))->render();
