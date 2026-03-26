@@ -19,7 +19,7 @@
 </head>
 <body>
 <div class="login-container">
-    <img src="/images/new-logo.png" alt="Логотип"/>
+    <img src="/images/new-logo.png" alt="Логотип" style="max-width: 200px; height: auto;"/>
     <h1>Авторизация</h1>
     <form action="{{ url('/cabinet/auth') }}" method="post">
         @csrf
