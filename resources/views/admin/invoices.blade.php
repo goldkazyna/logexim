@@ -33,7 +33,7 @@
 @section('content')
 <div style="margin-bottom:15px;display:flex;align-items:center;gap:10px">
     <i class="fas fa-search" style="color:#999;font-size:18px"></i>
-    <input type="text" id="invoice-search" placeholder="Поиск по номеру накладной..." style="padding:10px 15px;border:1px solid #ddd;border-radius:10px;font-size:14px;width:350px;outline:none" autocomplete="off">
+    <input type="text" id="invoice-search" placeholder="Поиск по номеру, отправителю, получателю..." style="padding:10px 15px;border:1px solid #ddd;border-radius:10px;font-size:14px;width:350px;outline:none" autocomplete="off">
 </div>
 <div class="card" id="invoices-card">
     <div class="card-header">Все накладные</div>

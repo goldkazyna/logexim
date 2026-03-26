@@ -115,7 +115,14 @@ class AdminController extends Controller
         if ($r = $this->checkAuth()) return $r;
         $query = Invoice::orderBy('id', 'desc');
         if ($request->has('search') && $request->input('search') !== '') {
-            $query->where('invoice_number', 'like', '%' . $request->input('search') . '%');
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhere('sender_name', 'like', "%{$search}%")
+                  ->orWhere('sender_company', 'like', "%{$search}%")
+                  ->orWhere('recipient_name', 'like', "%{$search}%")
+                  ->orWhere('recipient_company', 'like', "%{$search}%");
+            });
         }
         $invoices = $query->paginate(20);
         if ($request->ajax()) {
