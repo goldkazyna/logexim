@@ -22,13 +22,13 @@
     <div class="card-body">
         <div class="inv-row"><div class="label">Дата:</div><div class="value">{{ \Carbon\Carbon::parse($invoice->date)->format('d.m.Y') }}</div></div>
         <div class="inv-row"><div class="label">Статус:</div><div class="value">
-            @switch($invoice->status)
-                @case(0) Заявка создана @break
-                @case(1) Принята в работу @break
-                @case(2) Отправлено @break
-                @case(3) Исполнена @break
-                @case(4) Отменена @break
-            @endswitch
+            <select name="status" class="inv-edit-input" form="edit-invoice-form" style="width:200px">
+                <option value="0" @if($invoice->status==0) selected @endif>Заявка создана</option>
+                <option value="1" @if($invoice->status==1) selected @endif>Принята в работу</option>
+                <option value="2" @if($invoice->status==2) selected @endif>Отправлено</option>
+                <option value="3" @if($invoice->status==3) selected @endif>Исполнена</option>
+                <option value="4" @if($invoice->status==4) selected @endif>Отменена</option>
+            </select>
         </div></div>
 
         <div class="inv-section">Отправитель</div>

@@ -142,6 +142,7 @@ class AdminController extends Controller
     {
         if ($r = $this->checkAuth()) return $r;
         Invoice::where('id', $id)->update([
+            'status' => $request->input('status'),
             'volume_weight' => $request->input('volume_weight'),
             'payment' => $request->input('payment'),
             'plan_date' => $request->input('plan_date'),
