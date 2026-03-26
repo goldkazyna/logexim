@@ -7,6 +7,9 @@
     <style>
         .header-new { display: flex; align-items: flex-start; margin-bottom: 5px; }
         .header-col { flex: 1; }
+        .header-col-left { font-size: 9px; line-height: 1.3; }
+        .header-col-left p { margin: 0; }
+        .header-col-left .company-name { font-weight: bold; font-size: 10px; }
         .header-col-left .invoice-number { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .header-col-center { text-align: center; flex: 0 0 auto; padding: 0 10px; }
         .header-col-center img { height: 60px; }
@@ -27,15 +30,15 @@
             <div class="header-col header-col-left">
                 <div class="invoice-number">НАКЛАДНАЯ № {{ $invoice->invoice_number }}</div>
                 <svg id="barcode"></svg>
+                <p class="company-name" style="margin-top:5px">ТОО «LogExim Express»</p>
+                <p>БИН 211040031302</p>
+                <p>Офис: г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
+                <p>Склад: трасса Алматы-Усть-Каменогорск, ул. Аксуат 110</p>
             </div>
             <div class="header-col-center">
                 <img src="/images/new-logo.png" alt="Logo">
             </div>
             <div class="header-col header-col-right">
-                <p class="company-name">ТОО «LogExim Express»</p>
-                <p>БИН 211040031302</p>
-                <p>Офис: г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
-                <p>Склад: трасса Алматы-Усть-Каменогорск, ул. Аксуат 110</p>
                 <p>Тел: +7 727 320 96 69 | +7 707 230 15 65</p>
                 <p>E-mail: sale@logexim.kz</p>
             </div>
