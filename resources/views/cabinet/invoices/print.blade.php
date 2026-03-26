@@ -31,16 +31,13 @@
                 <div class="invoice-number">НАКЛАДНАЯ № {{ $invoice->invoice_number }}</div>
                 <svg id="barcode"></svg>
                 <p class="company-name" style="margin-top:5px">ТОО «LogExim Express»</p>
-                <p>БИН 211040031302</p>
+                <p>БИН 211040031302 | Тел: +7 727 320 96 69 | +7 707 230 15 65</p>
                 <p>Офис: г.Алматы, ул.Нурмакова 1/1, оф. 407</p>
                 <p>Склад: трасса Алматы-Усть-Каменогорск, ул. Аксуат 110</p>
+                <p>E-mail: sale@logexim.kz</p>
             </div>
             <div class="header-col-center">
                 <img src="/images/new-logo.png" alt="Logo">
-            </div>
-            <div class="header-col header-col-right">
-                <p>Тел: +7 727 320 96 69 | +7 707 230 15 65</p>
-                <p>E-mail: sale@logexim.kz</p>
             </div>
         </div>
         <div class="main">
