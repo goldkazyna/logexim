@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="/css/invoice.css">
+    <link rel="stylesheet" href="/css/invoice.css?v={{ time() }}">
     <title>Накладная № {{ $invoice->invoice_number }}</title>
     <style>
         .header-new { display: flex; align-items: flex-start; margin-bottom: 5px; }
