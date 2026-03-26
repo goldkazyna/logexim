@@ -10,7 +10,7 @@
         .header-col-left { font-size: 9px; line-height: 1.3; }
         .header-col-left p { margin: 0; }
         .header-col-left .company-name { font-weight: bold; font-size: 10px; }
-        .header-col-left .invoice-number { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .header-col-left .invoice-number { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
         .header-col-center { text-align: center; flex: 0 0 auto; padding: 0 10px; }
         .header-col-center img { height: 60px; }
         .header-col-right { text-align: right; font-size: 9px; line-height: 1.3; }
@@ -21,7 +21,7 @@
 </head>
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-<body onload="JsBarcode('#barcode','{{ $invoice->invoice_number }}',{displayValue:false,width:3,height:30,margin:0});window.print()">
+<body onload="JsBarcode('#barcode','{{ $invoice->invoice_number }}',{displayValue:false,width:2,height:28,margin:0});window.print()">
 
 <div class="wrapper">
 
