@@ -42,6 +42,13 @@ Route::get('/cabinet/edit_recipient_templates/{id}', [CabinetController::class, 
 Route::post('/cabinet/update_recipient_template', [CabinetController::class, 'updateRecipientTemplate']);
 Route::post('/cabinet/delete_recipient_template', [CabinetController::class, 'deleteRecipientTemplate']);
 Route::post('/cabinet/get_recipient_template', [CabinetController::class, 'getRecipientTemplate']);
+Route::get('/cabinet/description_templates', [CabinetController::class, 'descriptionTemplates']);
+Route::get('/cabinet/add_description_templates', [CabinetController::class, 'addDescriptionTemplate']);
+Route::post('/cabinet/save_description_template', [CabinetController::class, 'saveDescriptionTemplate']);
+Route::get('/cabinet/edit_description_templates/{id}', [CabinetController::class, 'editDescriptionTemplate']);
+Route::post('/cabinet/update_description_template', [CabinetController::class, 'updateDescriptionTemplate']);
+Route::post('/cabinet/delete_description_template', [CabinetController::class, 'deleteDescriptionTemplate']);
+Route::post('/cabinet/get_description_template', [CabinetController::class, 'getDescriptionTemplate']);
 Route::get('/cabinet/reports', [CabinetController::class, 'reports']);
 Route::get('/cabinet/export_invoices', [CabinetController::class, 'exportInvoices']);
 

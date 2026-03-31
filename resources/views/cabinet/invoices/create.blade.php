@@ -5,12 +5,12 @@
 .common_btn { background-color: #D0171C; border-color: #D0171C; border-radius: 10px; color:#ffffff; padding: 8px 20px; border: none; cursor: pointer; }
 .common_btn:hover { background-color: #a21216; }
 h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; border-radius:10px; }
-#template-modal .select-company-btn, #template-modal-2 .select-company-btn-2 { display: block; width: 100%; padding: 5px; background-color: #ffffff; color: #000000; border: 1px solid #cccccc; border-radius: 5px; text-align: center; cursor: pointer; }
-#template-modal .select-company-btn:hover, #template-modal-2 .select-company-btn-2:hover { background-color: #a21216; color:#ffffff; }
-#template-modal #company-list, #template-modal-2 #company-list-2 { max-height: 300px; overflow-y: auto; padding-right: 10px; }
-#template-modal #company-list::-webkit-scrollbar, #template-modal-2 #company-list-2::-webkit-scrollbar { width: 6px; }
-#template-modal #company-list::-webkit-scrollbar-thumb, #template-modal-2 #company-list-2::-webkit-scrollbar-thumb { background-color: #a21216; border-radius: 10px; }
-#template-modal #company-list::-webkit-scrollbar-track, #template-modal-2 #company-list-2::-webkit-scrollbar-track { background-color: #f1f1f1; }
+#template-modal .select-company-btn, #template-modal-2 .select-company-btn-2, #template-modal-3 .select-desc-btn { display: block; width: 100%; padding: 5px; background-color: #ffffff; color: #000000; border: 1px solid #cccccc; border-radius: 5px; text-align: center; cursor: pointer; }
+#template-modal .select-company-btn:hover, #template-modal-2 .select-company-btn-2:hover, #template-modal-3 .select-desc-btn:hover { background-color: #a21216; color:#ffffff; }
+#template-modal #company-list, #template-modal-2 #company-list-2, #template-modal-3 #desc-list { max-height: 300px; overflow-y: auto; padding-right: 10px; }
+#template-modal #company-list::-webkit-scrollbar, #template-modal-2 #company-list-2::-webkit-scrollbar, #template-modal-3 #desc-list::-webkit-scrollbar { width: 6px; }
+#template-modal #company-list::-webkit-scrollbar-thumb, #template-modal-2 #company-list-2::-webkit-scrollbar-thumb, #template-modal-3 #desc-list::-webkit-scrollbar-thumb { background-color: #a21216; border-radius: 10px; }
+#template-modal #company-list::-webkit-scrollbar-track, #template-modal-2 #company-list-2::-webkit-scrollbar-track, #template-modal-3 #desc-list::-webkit-scrollbar-track { background-color: #f1f1f1; }
 </style>
 @endpush
 @section('content')
@@ -109,6 +109,8 @@ h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; bo
 
                     <!-- Описание отправления -->
                     <h2 class="text-gray-800 font-bold text-lg mb-4">Описание отправления</h2>
+                    <button type="button" class="btn btn-primary common_btn mb-4" id="template-button-3">Выбрать из шаблона</button>
+
                     <div class="mb-4">
                         <label for="description" class="text-gray-800 font-bold text-base inline-block mb-2">Описание вложения</label>
                         <input type="text" id="description" name="description" class="form-input w-full md:w-1/2" placeholder="Введите описание вложения" required>
@@ -195,6 +197,19 @@ h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; bo
             <button type="button" class="close-modal-btn-2 mt-4 bg-red-600 text-white w-full px-4 py-2 rounded">Закрыть</button>
         </div>
     </div>
+
+    <!-- Модальное окно: Описание -->
+    <div id="template-modal-3" class="hidden fixed inset-0 bg-opacity-75 flex justify-center items-center" style="z-index:9999;background:rgba(0,0,0,0.5)">
+        <div class="bg-white w-96 rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4" style="padding:10px;background:none;color:#000!important;text-align:left">Выберите шаблон описания</h2>
+            <ul id="desc-list" class="space-y-2">
+                @foreach($descriptionTemplates as $dt)
+                <li><button type="button" class="select-desc-btn" data-id="{{ $dt->id }}">{{ $dt->template_name }}<br><span style="font-size:11px">{{ $dt->description }}</span></button></li>
+                @endforeach
+            </ul>
+            <button type="button" class="close-modal-btn-3 mt-4 bg-red-600 text-white w-full px-4 py-2 rounded">Закрыть</button>
+        </div>
+    </div>
 </main>
 @endsection
 
@@ -247,9 +262,30 @@ $(document).ready(function() {
         });
     });
 
+    // Открытие модального окна описания
+    $('#template-button-3').click(function() { $('#template-modal-3').removeClass('hidden'); });
+
+    // Выбор шаблона описания
+    $('.select-desc-btn').click(function() {
+        var templateId = $(this).data('id');
+        $.ajax({
+            url: '/cabinet/get_description_template', type: 'POST', data: {id: templateId}, dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#description').val(response.description);
+                    $('#quantity').val(response.quantity);
+                    $('#weight').val(response.weight);
+                    $('#volume-weight').val(response.volume_weight);
+                    $('#template-modal-3').addClass('hidden');
+                } else { alert('Ошибка при получении данных шаблона.'); }
+            }
+        });
+    });
+
     // Закрытие модальных окон
     $('.close-modal-btn').click(function() { $('#template-modal').addClass('hidden'); });
     $('.close-modal-btn-2').click(function() { $('#template-modal-2').addClass('hidden'); });
+    $('.close-modal-btn-3').click(function() { $('#template-modal-3').addClass('hidden'); });
 
     // Сегодняшняя дата
     var today = new Date();

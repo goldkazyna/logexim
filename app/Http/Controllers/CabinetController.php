@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Invoice;
 use App\Models\RecipientTemplate;
+use App\Models\DescriptionTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -140,7 +141,8 @@ class CabinetController extends Controller
         if ($r = $this->checkAuth()) return $r;
         $user = $this->getUser();
         $templates = RecipientTemplate::where('user_id', $user->id)->get();
-        return view('cabinet.invoices.create', compact('user', 'templates'));
+        $descriptionTemplates = DescriptionTemplate::where('user_id', $user->id)->get();
+        return view('cabinet.invoices.create', compact('user', 'templates', 'descriptionTemplates'));
     }
 
     public function saveInvoice(Request $request)
@@ -366,6 +368,72 @@ class CabinetController extends Controller
         $template = RecipientTemplate::find($request->input('id'));
         if ($template) {
             return response()->json(['status' => 'success', 'company' => $template->company, 'recipient_name' => $template->recipient_name, 'recipient_phone' => $template->recipient_phone, 'address' => $template->address, 'city' => $template->city, 'country' => $template->country, 'region' => $template->region, 'district' => $template->district]);
+        }
+        return response()->json(['status' => 'error', 'message' => 'Шаблон не найден.']);
+    }
+
+    // === DESCRIPTION TEMPLATES ===
+    public function descriptionTemplates()
+    {
+        if ($r = $this->checkAuth()) return $r;
+        $user = $this->getUser();
+        $templates = DescriptionTemplate::where('user_id', $user->id)->get();
+        return view('cabinet.description_templates.index', compact('templates'));
+    }
+
+    public function addDescriptionTemplate()
+    {
+        if ($r = $this->checkAuth()) return $r;
+        return view('cabinet.description_templates.add');
+    }
+
+    public function saveDescriptionTemplate(Request $request)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        $user = $this->getUser();
+        DescriptionTemplate::create([
+            'user_id' => $user->id,
+            'template_name' => $request->input('template_name'),
+            'description' => $request->input('description'),
+            'quantity' => $request->input('quantity'),
+            'weight' => $request->input('weight'),
+            'volume_weight' => $request->input('volume_weight'),
+        ]);
+        return redirect('/cabinet/description_templates')->with('success_message', 'Шаблон описания успешно добавлен!');
+    }
+
+    public function editDescriptionTemplate($id)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        $template = DescriptionTemplate::findOrFail($id);
+        return view('cabinet.description_templates.edit', compact('template'));
+    }
+
+    public function updateDescriptionTemplate(Request $request)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        DescriptionTemplate::where('id', $request->input('id'))->update([
+            'template_name' => $request->input('template_name'),
+            'description' => $request->input('description'),
+            'quantity' => $request->input('quantity'),
+            'weight' => $request->input('weight'),
+            'volume_weight' => $request->input('volume_weight'),
+        ]);
+        return redirect('/cabinet/description_templates')->with('success_message', 'Шаблон успешно обновлен.');
+    }
+
+    public function deleteDescriptionTemplate(Request $request)
+    {
+        if (!session('bin')) return response()->json(['status' => 'error', 'message' => 'Необходима авторизация.']);
+        DescriptionTemplate::where('id', $request->input('id'))->delete();
+        return response()->json(['status' => 'success', 'message' => 'Шаблон описания удален.']);
+    }
+
+    public function getDescriptionTemplate(Request $request)
+    {
+        $template = DescriptionTemplate::find($request->input('id'));
+        if ($template) {
+            return response()->json(['status' => 'success', 'description' => $template->description, 'quantity' => $template->quantity, 'weight' => $template->weight, 'volume_weight' => $template->volume_weight]);
         }
         return response()->json(['status' => 'error', 'message' => 'Шаблон не найден.']);
     }

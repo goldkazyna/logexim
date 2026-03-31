@@ -40,6 +40,12 @@
                         </a>
                     </li>
                     <li class="menu-item">
+                        <a href="/cabinet/description_templates" class="group flex items-center gap-x-3.5 rounded-e-full px-4 py-2 text-sm font-medium text-default-700 transition-all hover:bg-default-100">
+                            <i class="material-symbols-rounded font-light text-2xl transition-all group-hover:fill-1">description</i>
+                            <span class="menu-text">Шаблоны описания</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
                         <a href="/cabinet/invoices" class="group flex items-center gap-x-3.5 rounded-e-full px-4 py-2 text-sm font-medium text-default-700 transition-all hover:bg-default-100">
                             <i class="material-symbols-rounded font-light text-2xl transition-all group-hover:fill-1">send</i>
                             <span class="menu-text">Накладные</span>
