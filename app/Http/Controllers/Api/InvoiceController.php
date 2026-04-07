@@ -41,14 +41,14 @@ class InvoiceController extends Controller
         $request->validate([
             'sender_name' => 'required|string|max:255',
             'sender_phone' => 'required|string|max:100',
-            'sender_address' => 'required|string|max:500',
+            'sender_address' => 'nullable|string|max:500',
             'recipient_name' => 'required|string|max:255',
             'recipient_phone' => 'required|string|max:100',
             'recipient_city' => 'required|string|max:255',
-            'recipient_address' => 'required|string|max:500',
+            'recipient_address' => 'nullable|string|max:500',
             'description' => 'required|string|max:500',
             'quantity' => 'required|integer|min:1',
-            'weight' => 'required|numeric|min:0.1',
+            'weight' => 'required|numeric|min:0',
         ]);
 
         $user = $request->user();
