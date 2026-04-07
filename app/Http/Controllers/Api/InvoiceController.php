@@ -38,29 +38,16 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'sender_name' => 'required|string|max:255',
-            'sender_phone' => 'required|string|max:100',
-            'sender_address' => 'nullable|string|max:500',
-            'recipient_name' => 'required|string|max:255',
-            'recipient_phone' => 'required|string|max:100',
-            'recipient_city' => 'required|string|max:255',
-            'recipient_address' => 'nullable|string|max:500',
-            'description' => 'required|string|max:500',
-            'quantity' => 'required|integer|min:1',
-            'weight' => 'required|numeric|min:0',
-        ]);
-
         try {
             $user = $request->user();
             $lastNumber = Invoice::max('invoice_number');
             $newNumber = $lastNumber ? $lastNumber + 1 : 900001;
 
-            $invoice = Invoice::create([
+            Invoice::create([
                 'user_id' => $user->id,
                 'status' => 0,
                 'invoice_number' => $newNumber,
-                'date' => now()->format('Y-m-d'),
+                'date' => $request->input('date', now()->format('Y-m-d')),
                 'sender_name' => $request->input('sender_name', ''),
                 'sender_phone' => $request->input('sender_phone', ''),
                 'sender_company' => $request->input('sender_company', ''),
@@ -80,24 +67,23 @@ class InvoiceController extends Controller
                 'description' => $request->input('description', ''),
                 'quantity' => $request->input('quantity', 1),
                 'weight' => $request->input('weight', 0),
-                'volume_weight' => $request->input('volume_weight', ''),
-                'fragile' => $request->input('fragile', 0),
-                'declared_value' => $request->input('declared_value', ''),
-                'payment' => $request->input('payment', ''),
-                'payment_sender' => $request->input('payment_sender', 0),
-                'payment_recipient' => $request->input('payment_recipient', 0),
-                'payment_contract' => $request->input('payment_contract', 0),
-                'payment_invoice' => $request->input('payment_invoice', 0),
-                'payment_cash' => $request->input('payment_cash', 0),
+                'volume_weight' => $request->input('volume_weight', 0),
+                'fragile' => $request->input('fragile', 0) ? 1 : 0,
+                'declared_value' => $request->input('declared_value', 0),
+                'payment' => 0,
+                'payment_sender' => $request->input('payment_sender', 0) ? 1 : 0,
+                'payment_recipient' => $request->input('payment_recipient', 0) ? 1 : 0,
+                'payment_contract' => $request->input('payment_contract', 0) ? 1 : 0,
+                'payment_invoice' => $request->input('payment_invoice', 0) ? 1 : 0,
+                'payment_cash' => $request->input('payment_cash', 0) ? 1 : 0,
                 'special' => $request->input('special', ''),
-                'printed' => 0,
             ]);
 
             $this->sendTelegram("Новая накладная (моб. приложение), №: {$newNumber}");
 
             return response()->json([
                 'message' => 'Заявка успешно создана',
-                'invoice' => $invoice,
+                'invoice_number' => $newNumber,
             ], 201);
         } catch (\Throwable $e) {
             return response()->json([
