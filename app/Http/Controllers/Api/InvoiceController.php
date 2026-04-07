@@ -51,53 +51,59 @@ class InvoiceController extends Controller
             'weight' => 'required|numeric|min:0',
         ]);
 
-        $user = $request->user();
-        $lastNumber = Invoice::max('invoice_number');
-        $newNumber = $lastNumber ? $lastNumber + 1 : 900001;
+        try {
+            $user = $request->user();
+            $lastNumber = Invoice::max('invoice_number');
+            $newNumber = $lastNumber ? $lastNumber + 1 : 900001;
 
-        $invoice = Invoice::create([
-            'user_id' => $user->id,
-            'status' => 0,
-            'invoice_number' => $newNumber,
-            'date' => now()->format('Y-m-d'),
-            'sender_name' => $request->input('sender_name'),
-            'sender_phone' => $request->input('sender_phone'),
-            'sender_company' => $request->input('sender_company', ''),
-            'sender_city' => $request->input('sender_city', ''),
-            'sender_country' => $request->input('sender_country', ''),
-            'sender_region' => $request->input('sender_region', ''),
-            'sender_district' => $request->input('sender_district', ''),
-            'sender_address' => $request->input('sender_address'),
-            'recipient_name' => $request->input('recipient_name'),
-            'recipient_phone' => $request->input('recipient_phone'),
-            'recipient_company' => $request->input('recipient_company', ''),
-            'recipient_city' => $request->input('recipient_city'),
-            'recipient_country' => $request->input('recipient_country', ''),
-            'recipient_region' => $request->input('recipient_region', ''),
-            'recipient_district' => $request->input('recipient_district', ''),
-            'recipient_address' => $request->input('recipient_address'),
-            'description' => $request->input('description'),
-            'quantity' => $request->input('quantity'),
-            'weight' => $request->input('weight'),
-            'volume_weight' => $request->input('volume_weight', ''),
-            'fragile' => $request->input('fragile', 0),
-            'declared_value' => $request->input('declared_value', ''),
-            'payment' => $request->input('payment', ''),
-            'payment_sender' => $request->input('payment_sender', 0),
-            'payment_recipient' => $request->input('payment_recipient', 0),
-            'payment_contract' => $request->input('payment_contract', 0),
-            'payment_invoice' => $request->input('payment_invoice', 0),
-            'payment_cash' => $request->input('payment_cash', 0),
-            'special' => $request->input('special', ''),
-            'printed' => 0,
-        ]);
+            $invoice = Invoice::create([
+                'user_id' => $user->id,
+                'status' => 0,
+                'invoice_number' => $newNumber,
+                'date' => now()->format('Y-m-d'),
+                'sender_name' => $request->input('sender_name', ''),
+                'sender_phone' => $request->input('sender_phone', ''),
+                'sender_company' => $request->input('sender_company', ''),
+                'sender_city' => $request->input('sender_city', ''),
+                'sender_country' => $request->input('sender_country', ''),
+                'sender_region' => $request->input('sender_region', ''),
+                'sender_district' => $request->input('sender_district', ''),
+                'sender_address' => $request->input('sender_address', ''),
+                'recipient_name' => $request->input('recipient_name', ''),
+                'recipient_phone' => $request->input('recipient_phone', ''),
+                'recipient_company' => $request->input('recipient_company', ''),
+                'recipient_city' => $request->input('recipient_city', ''),
+                'recipient_country' => $request->input('recipient_country', ''),
+                'recipient_region' => $request->input('recipient_region', ''),
+                'recipient_district' => $request->input('recipient_district', ''),
+                'recipient_address' => $request->input('recipient_address', ''),
+                'description' => $request->input('description', ''),
+                'quantity' => $request->input('quantity', 1),
+                'weight' => $request->input('weight', 0),
+                'volume_weight' => $request->input('volume_weight', ''),
+                'fragile' => $request->input('fragile', 0),
+                'declared_value' => $request->input('declared_value', ''),
+                'payment' => $request->input('payment', ''),
+                'payment_sender' => $request->input('payment_sender', 0),
+                'payment_recipient' => $request->input('payment_recipient', 0),
+                'payment_contract' => $request->input('payment_contract', 0),
+                'payment_invoice' => $request->input('payment_invoice', 0),
+                'payment_cash' => $request->input('payment_cash', 0),
+                'special' => $request->input('special', ''),
+                'printed' => 0,
+            ]);
 
-        $this->sendTelegram("Новая накладная (моб. приложение), №: {$newNumber}");
+            $this->sendTelegram("Новая накладная (моб. приложение), №: {$newNumber}");
 
-        return response()->json([
-            'message' => 'Заявка успешно создана',
-            'invoice' => $invoice,
-        ], 201);
+            return response()->json([
+                'message' => 'Заявка успешно создана',
+                'invoice' => $invoice,
+            ], 201);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Ошибка при создании заявки. Попробуйте позже.',
+            ], 500);
+        }
     }
 
     public function show(Request $request, $id)
