@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\CityController;
+use App\Http\Controllers\Api\TemplateController;
 
 // Public routes
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -22,4 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/invoices', [InvoiceController::class, 'store']);
     Route::get('/invoices/stats', [InvoiceController::class, 'stats']);
     Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
+
+    // Templates
+    Route::get('/templates/recipients', [TemplateController::class, 'recipientTemplates']);
+    Route::get('/templates/descriptions', [TemplateController::class, 'descriptionTemplates']);
 });
