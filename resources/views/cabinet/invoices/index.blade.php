@@ -41,7 +41,17 @@
             </div>
 
             <div class="mt-4" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <a href="{{ url('cabinet/create_invoice') }}" class="btn btn-primary common_btn">Добавить накладную</a>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <a href="{{ url('cabinet/create_invoice') }}" class="btn btn-primary common_btn">Добавить накладную</a>
+                    @if($unprintedCount > 0)
+                    <a href="{{ url('cabinet/invoices?unprinted=1') }}" class="btn common_btn" id="unprinted-btn" style="background-color: {{ request('unprinted') == '1' ? '#a21216' : '#ff6600' }};">
+                        <i class="fas fa-print"></i> Ненапечатанные накладные ({{ $unprintedCount }})
+                    </a>
+                    @endif
+                    @if(request('unprinted') == '1')
+                    <a href="{{ url('cabinet/invoices') }}" class="btn common_btn" style="background-color: #6c757d;">Показать все</a>
+                    @endif
+                </div>
                 <div class="search-wrapper">
                     <i class="fas fa-search"></i>
                     <input type="text" id="invoice-search" class="search-input" placeholder="Поиск по номеру, отправителю, получателю..." autocomplete="off">

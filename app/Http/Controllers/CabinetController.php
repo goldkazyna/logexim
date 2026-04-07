@@ -116,6 +116,11 @@ class CabinetController extends Controller
         if ($r = $this->checkAuth()) return $r;
         $user = $this->getUser();
         $query = Invoice::where('user_id', $user->id)->orderBy('id', 'desc');
+        $unprintedCount = Invoice::where('user_id', $user->id)->where('printed', 0)->count();
+
+        if ($request->has('unprinted') && $request->input('unprinted') == '1') {
+            $query->where('printed', 0);
+        }
 
         if ($request->ajax() && $request->has('search')) {
             $search = $request->input('search');
@@ -133,7 +138,7 @@ class CabinetController extends Controller
         }
 
         $invoices = $query->paginate(15);
-        return view('cabinet.invoices.index', compact('invoices'));
+        return view('cabinet.invoices.index', compact('invoices', 'unprintedCount'));
     }
 
     public function createInvoice()
@@ -190,6 +195,7 @@ class CabinetController extends Controller
     {
         if ($r = $this->checkAuth()) return $r;
         $invoice = Invoice::findOrFail($id);
+        $invoice->update(['printed' => 1]);
         return view('cabinet.invoices.print', compact('invoice'));
     }
 

@@ -18,7 +18,7 @@ class Invoice extends Model
         'description', 'quantity', 'weight', 'volume_weight',
         'fragile', 'declared_value', 'payment',
         'payment_sender', 'payment_recipient', 'payment_contract', 'payment_invoice', 'payment_cash',
-        'fact_date', 'plan_date', 'special',
+        'fact_date', 'plan_date', 'special', 'printed',
     ];
 
     public function user()
