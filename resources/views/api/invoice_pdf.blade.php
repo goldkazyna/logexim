@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'DejaVu Sans', sans-serif !important; }
 body { font-family: 'DejaVu Sans', sans-serif; font-size: 9px; }
 .invoice { padding: 15px; }
 .header { display: table; width: 100%; margin-bottom: 8px; }
