@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -99,6 +100,18 @@ class InvoiceController extends Controller
             ->firstOrFail();
 
         return response()->json(['invoice' => $invoice]);
+    }
+
+    public function pdf(Request $request, $id)
+    {
+        $invoice = Invoice::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        $pdf = Pdf::loadView('api.invoice_pdf', compact('invoice'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download("nakladnaya_{$invoice->invoice_number}.pdf");
     }
 
     public function stats(Request $request)

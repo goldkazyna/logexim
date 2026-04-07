@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/invoices', [InvoiceController::class, 'store']);
     Route::get('/invoices/stats', [InvoiceController::class, 'stats']);
     Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
+    Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'pdf']);
 
     // Templates
     Route::get('/templates/recipients', [TemplateController::class, 'recipientTemplates']);
