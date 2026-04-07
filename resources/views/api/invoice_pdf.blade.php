@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 9px; }
+body { font-family: 'DejaVu Sans', sans-serif; font-size: 9px; }
 .invoice { padding: 15px; }
 .header { display: table; width: 100%; margin-bottom: 8px; }
 .header-left, .header-center, .header-right { display: table-cell; vertical-align: top; }
