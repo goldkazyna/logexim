@@ -105,10 +105,11 @@ class InvoiceController extends Controller
     {
         $userId = $request->user()->id;
 
+        // Statuses: 0=Заявка создана, 1=Принята в работу, 2=Отправлено, 3=Исполнена, 4=Отменена
         return response()->json([
             'active' => Invoice::where('user_id', $userId)->whereIn('status', [0, 1])->count(),
-            'in_transit' => Invoice::where('user_id', $userId)->whereIn('status', [2, 3, 4])->count(),
-            'delivered' => Invoice::where('user_id', $userId)->where('status', 5)->count(),
+            'in_transit' => Invoice::where('user_id', $userId)->where('status', 2)->count(),
+            'delivered' => Invoice::where('user_id', $userId)->where('status', 3)->count(),
             'total' => Invoice::where('user_id', $userId)->count(),
         ]);
     }
