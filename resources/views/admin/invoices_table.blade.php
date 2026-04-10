@@ -6,7 +6,7 @@
     @forelse($invoices as $inv)
     <tr>
         <td>{{ $inv->invoice_number }}</td>
-        <td>{{ \Carbon\Carbon::parse($inv->date)->format('d.m.Y') }}</td>
+        <td>{{ \Carbon\Carbon::parse($inv->created_at)->format('d.m.Y H:i') }}</td>
         <td>{{ $inv->user->bin ?? '—' }}</td>
         <td>{{ $inv->sender_company }}<br><small>{{ $inv->sender_name }}</small></td>
         <td>{{ $inv->recipient_company }}<br><small>{{ $inv->recipient_name }}</small></td>
