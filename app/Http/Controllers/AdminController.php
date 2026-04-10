@@ -124,11 +124,19 @@ class AdminController extends Controller
                   ->orWhere('recipient_company', 'like', "%{$search}%");
             });
         }
+        if ($request->filled('bin')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('bin', $request->input('bin'));
+            });
+        }
         $invoices = $query->paginate(20);
         if ($request->ajax()) {
             return view('admin.invoices_table', compact('invoices'))->render();
         }
-        return view('admin.invoices', compact('invoices'));
+        $bins = User::whereIn('id', Invoice::select('user_id')->distinct())
+            ->whereNotNull('bin')->where('bin', '!=', '')
+            ->orderBy('bin')->pluck('bin', 'id');
+        return view('admin.invoices', compact('invoices', 'bins'));
     }
 
     public function viewInvoice($id)

@@ -31,9 +31,15 @@
 </style>
 @endpush
 @section('content')
-<div style="margin-bottom:15px;display:flex;align-items:center;gap:10px">
+<div style="margin-bottom:15px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <i class="fas fa-search" style="color:#999;font-size:18px"></i>
     <input type="text" id="invoice-search" placeholder="Поиск по номеру, отправителю, получателю..." style="padding:10px 15px;border:1px solid #ddd;border-radius:10px;font-size:14px;width:350px;outline:none" autocomplete="off">
+    <select id="bin-filter" style="padding:10px 15px;border:1px solid #ddd;border-radius:10px;font-size:14px;outline:none;min-width:200px;background:#fff">
+        <option value="">Все ИИН/БИН</option>
+        @foreach($bins as $id => $bin)
+            <option value="{{ $bin }}">{{ $bin }}</option>
+        @endforeach
+    </select>
 </div>
 <div class="card" id="invoices-card">
     <div class="card-header">Все накладные</div>
@@ -79,18 +85,28 @@ document.getElementById('statusModal').addEventListener('click', function(e) {
     if (e.target === this) closeStatusModal();
 });
 
+function loadInvoices() {
+    var data = {};
+    var search = $('#invoice-search').val();
+    var bin = $('#bin-filter').val();
+    if (search) data.search = search;
+    if (bin) data.bin = bin;
+    $.ajax({
+        url: '/admin/invoices',
+        type: 'GET',
+        data: data,
+        success: function(html) { $('#invoices-table').html(html); }
+    });
+}
+
 var searchTimer;
 $('#invoice-search').on('input', function() {
-    var query = $(this).val();
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(function() {
-        $.ajax({
-            url: '/admin/invoices',
-            type: 'GET',
-            data: { search: query },
-            success: function(html) { $('#invoices-table').html(html); }
-        });
-    }, 300);
+    searchTimer = setTimeout(loadInvoices, 300);
+});
+
+$('#bin-filter').on('change', function() {
+    loadInvoices();
 });
 
 $(document).on('click', '#invoices-table .pagination-wrapper .page-link:not(.disabled)', function(e) {
@@ -98,7 +114,9 @@ $(document).on('click', '#invoices-table .pagination-wrapper .page-link:not(.dis
     var url = $(this).attr('href');
     if (url === '#') return;
     var search = $('#invoice-search').val();
+    var bin = $('#bin-filter').val();
     if (search) url += (url.indexOf('?') !== -1 ? '&' : '?') + 'search=' + encodeURIComponent(search);
+    if (bin) url += (url.indexOf('?') !== -1 ? '&' : '?') + 'bin=' + encodeURIComponent(bin);
     $.ajax({ url: url, success: function(html) { $('#invoices-table').html(html); } });
 });
 </script>
