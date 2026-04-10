@@ -1,6 +1,9 @@
 <table class="min-w-full divide-y divide-gray-200">
     <thead>
         <tr>
+            <th scope="col" class="px-3 py-3 text-center text-sm text-gray-500" style="width:40px">
+                <input type="checkbox" id="select-all-invoices" style="width:18px;height:18px;cursor:pointer">
+            </th>
             <th scope="col" class="px-6 py-3 text-start text-sm text-gray-500">Дата</th>
             <th scope="col" class="px-6 py-3 text-start text-sm text-gray-500">Номер накладной</th>
             <th scope="col" class="px-6 py-3 text-start text-sm text-gray-500">Отправитель</th>
@@ -15,6 +18,9 @@
     <tbody class="divide-y divide-gray-200">
         @forelse($invoices as $invoice)
         <tr id="invoice-{{ $invoice->id }}">
+            <td class="px-3 py-4 text-center">
+                <input type="checkbox" class="invoice-checkbox" value="{{ $invoice->id }}" style="width:18px;height:18px;cursor:pointer">
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                 {{ \Carbon\Carbon::parse($invoice->date)->format('d.m.Y') }}
             </td>
@@ -57,7 +63,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="9" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">Накладные отсутствуют.</td>
+            <td colspan="10" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">Накладные отсутствуют.</td>
         </tr>
         @endforelse
     </tbody>

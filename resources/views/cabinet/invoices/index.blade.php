@@ -43,6 +43,9 @@
             <div class="mt-4" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <a href="{{ url('cabinet/create_invoice') }}" class="btn btn-primary common_btn">Добавить накладную</a>
+                    <button type="button" id="print-selected-btn" class="btn common_btn" style="display:none;background-color:#333">
+                        <i class="fas fa-print"></i> Печатать выбранные (<span id="selected-count">0</span>)
+                    </button>
                     @if($unprintedCount > 0)
                     <a href="{{ url('cabinet/invoices?unprinted=1') }}" class="btn common_btn" id="unprinted-btn" style="background-color: {{ request('unprinted') == '1' ? '#a21216' : '#ff6600' }};">
                         <i class="fas fa-print"></i> Ненапечатанные накладные ({{ $unprintedCount }})
@@ -96,6 +99,35 @@ $(document).ready(function() {
                 }
             });
         }, 300);
+    });
+
+    function updatePrintButton() {
+        var checked = $('.invoice-checkbox:checked');
+        var count = checked.length;
+        $('#selected-count').text(count);
+        if (count > 0) {
+            $('#print-selected-btn').show();
+        } else {
+            $('#print-selected-btn').hide();
+        }
+    }
+
+    $(document).on('change', '#select-all-invoices', function() {
+        $('.invoice-checkbox').prop('checked', this.checked);
+        updatePrintButton();
+    });
+
+    $(document).on('change', '.invoice-checkbox', function() {
+        var total = $('.invoice-checkbox').length;
+        var checked = $('.invoice-checkbox:checked').length;
+        $('#select-all-invoices').prop('checked', total === checked);
+        updatePrintButton();
+    });
+
+    $('#print-selected-btn').on('click', function() {
+        var ids = $('.invoice-checkbox:checked').map(function() { return this.value; }).get();
+        if (ids.length === 0) return;
+        window.open('/cabinet/print_invoices?ids=' + ids.join(','), '_blank');
     });
 
     // Делегирование кликов по пагинации внутри AJAX-контента

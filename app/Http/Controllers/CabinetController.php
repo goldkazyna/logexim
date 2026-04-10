@@ -199,6 +199,19 @@ class CabinetController extends Controller
         return view('cabinet.invoices.print', compact('invoice'));
     }
 
+    public function printInvoices(Request $request)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        $ids = explode(',', $request->input('ids', ''));
+        $ids = array_filter($ids, 'is_numeric');
+        if (empty($ids)) return redirect('/cabinet/invoices');
+        $user = $this->getUser();
+        $invoices = Invoice::where('user_id', $user->id)->whereIn('id', $ids)->get();
+        if ($invoices->isEmpty()) return redirect('/cabinet/invoices');
+        Invoice::where('user_id', $user->id)->whereIn('id', $ids)->update(['printed' => 1]);
+        return view('cabinet.invoices.print_multi', compact('invoices'));
+    }
+
     public function exportInvoices(Request $request)
     {
         if ($r = $this->checkAuth()) return $r;

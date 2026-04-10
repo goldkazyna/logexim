@@ -35,6 +35,7 @@ Route::get('/cabinet/create_invoice', [CabinetController::class, 'createInvoice'
 Route::post('/cabinet/save_invoices', [CabinetController::class, 'saveInvoice']);
 Route::get('/cabinet/view_invoice/{id}', [CabinetController::class, 'viewInvoice']);
 Route::get('/cabinet/print_invoice/{id}', [CabinetController::class, 'printInvoice']);
+Route::get('/cabinet/print_invoices', [CabinetController::class, 'printInvoices']);
 Route::get('/cabinet/recipient_templates', [CabinetController::class, 'recipientTemplates']);
 Route::get('/cabinet/add_recipient_templates', [CabinetController::class, 'addRecipientTemplate']);
 Route::post('/cabinet/save_recipient_template', [CabinetController::class, 'saveRecipientTemplate']);
