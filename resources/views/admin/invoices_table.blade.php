@@ -1,12 +1,13 @@
 <table>
     <thead>
-        <tr><th>№</th><th>Дата</th><th>Отправитель</th><th>Получатель</th><th>Вес</th><th>Статус</th><th>Действие</th></tr>
+        <tr><th>№</th><th>Дата</th><th>ИИН/БИН</th><th>Отправитель</th><th>Получатель</th><th>Вес</th><th>Статус</th><th>Действие</th></tr>
     </thead>
     <tbody>
     @forelse($invoices as $inv)
     <tr>
         <td>{{ $inv->invoice_number }}</td>
         <td>{{ \Carbon\Carbon::parse($inv->date)->format('d.m.Y') }}</td>
+        <td>{{ $inv->user->bin ?? '—' }}</td>
         <td>{{ $inv->sender_company }}<br><small>{{ $inv->sender_name }}</small></td>
         <td>{{ $inv->recipient_company }}<br><small>{{ $inv->recipient_name }}</small></td>
         <td>{{ $inv->weight }}</td>
@@ -24,7 +25,7 @@
         <td><a href="/admin/invoices/view/{{ $inv->id }}" target="_blank" class="btn btn-sm btn-primary">Просмотр</a></td>
     </tr>
     @empty
-    <tr><td colspan="7" style="text-align:center;padding:20px;color:#888">Накладные не найдены</td></tr>
+    <tr><td colspan="8" style="text-align:center;padding:20px;color:#888">Накладные не найдены</td></tr>
     @endforelse
     </tbody>
 </table>

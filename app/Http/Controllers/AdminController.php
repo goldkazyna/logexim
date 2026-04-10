@@ -113,7 +113,7 @@ class AdminController extends Controller
     public function invoices(Request $request)
     {
         if ($r = $this->checkAuth()) return $r;
-        $query = Invoice::orderBy('id', 'desc');
+        $query = Invoice::with('user')->orderBy('id', 'desc');
         if ($request->has('search') && $request->input('search') !== '') {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
