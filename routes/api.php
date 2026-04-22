@@ -25,7 +25,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/staff/logout', [StaffAuthController::class, 'logout']);
     Route::get('/staff/profile', [StaffAuthController::class, 'profile']);
     Route::get('/staff/invoices', [StaffInvoiceController::class, 'index']);
+    Route::get('/staff/invoices/by-number/{number}', [StaffInvoiceController::class, 'findByNumber']);
     Route::get('/staff/invoices/{id}', [StaffInvoiceController::class, 'show'])->whereNumber('id');
+    Route::post('/staff/invoices/{id}/pickup', [StaffInvoiceController::class, 'pickup'])->whereNumber('id');
 
     // Invoices
     Route::get('/invoices', [InvoiceController::class, 'index']);

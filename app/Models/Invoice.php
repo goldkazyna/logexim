@@ -25,7 +25,7 @@ class Invoice extends Model
     }
 
     protected $fillable = [
-        'invoice_number', 'status', 'detail_status', 'user_id', 'courier_id', 'date',
+        'invoice_number', 'status', 'detail_status', 'pickup_signature', 'user_id', 'courier_id', 'date',
         'sender_name', 'sender_phone', 'sender_company',
         'sender_city', 'sender_country', 'sender_region', 'sender_district', 'sender_address',
         'recipient_name', 'recipient_phone', 'recipient_company',
