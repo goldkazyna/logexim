@@ -72,7 +72,13 @@
                 <li><a href="/admin/users"><i class="fas fa-users"></i> Пользователи</a></li>
                 <li><a href="/admin/staff"><i class="fas fa-user-tie"></i> Сотрудники</a></li>
             @endif
-            @php $newInvoicesCount = \App\Models\Invoice::where('status', 0)->count(); @endphp
+            @php
+                $newInvoicesQuery = \App\Models\Invoice::where('status', 0);
+                if (session('role') === 'courier') {
+                    $newInvoicesQuery->where('courier_id', session('staff_id'));
+                }
+                $newInvoicesCount = $newInvoicesQuery->count();
+            @endphp
             <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Накладные <span id="invoice-badge" style="background:#D0171C;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:5px;{{ $newInvoicesCount > 0 ? '' : 'display:none' }}">{{ $newInvoicesCount }}</span></a></li>
             @if($role === 'admin')
                 <li><a href="/admin/orders"><i class="fas fa-truck"></i> Заказы/Трекинг</a></li>
@@ -119,7 +125,14 @@
 <style>@keyframes fadeIn{from{opacity:0;background:#fff3cd}to{opacity:1;background:#fff8e1}}</style>
 <script>
 (function(){
-    var lastId = {{ \App\Models\Invoice::max('id') ?: 0 }};
+    @php
+        $lastIdQuery = \App\Models\Invoice::query();
+        if (session('role') === 'courier') {
+            $lastIdQuery->where('courier_id', session('staff_id'));
+        }
+        $initialLastId = $lastIdQuery->max('id') ?: 0;
+    @endphp
+    var lastId = {{ $initialLastId }};
     setInterval(function(){
         $.get('/admin/invoices/check-new', {last_id: lastId}, function(data){
             // Обновляем бейдж

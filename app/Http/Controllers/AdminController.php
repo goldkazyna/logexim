@@ -116,19 +116,39 @@ class AdminController extends Controller
             return response()->json(['error' => 'unauthorized'], 401);
         }
         $lastId = $request->input('last_id', 0);
-        $count = Invoice::where('status', 0)->count();
-        $newInvoices = Invoice::where('id', '>', $lastId)->orderBy('id', 'desc')->get();
-        $maxId = Invoice::max('id') ?: 0;
+        $isCourier = session('role') === 'courier';
+        $courierId = (int) session('staff_id');
+
+        $countQuery = Invoice::where('status', 0);
+        if ($isCourier) $countQuery->where('courier_id', $courierId);
+        $count = $countQuery->count();
+
+        $newQuery = Invoice::where('id', '>', $lastId);
+        if ($isCourier) $newQuery->where('courier_id', $courierId);
+        $newInvoices = $newQuery->orderBy('id', 'desc')->get();
+
+        $maxQuery = Invoice::query();
+        if ($isCourier) $maxQuery->where('courier_id', $courierId);
+        $maxId = $maxQuery->max('id') ?: 0;
+        $showCourier = in_array(session('role'), ['admin', 'dispatcher'], true);
+        if ($showCourier) {
+            $newInvoices->load('courier');
+        }
         $html = '';
         foreach ($newInvoices as $inv) {
             $date = \Carbon\Carbon::parse($inv->date)->format('d.m.Y');
             $statuses = [0=>'Заявка создана',1=>'Принята в работу',2=>'Отправлено',3=>'Исполнена',4=>'Отменена'];
             $statusText = $statuses[$inv->status] ?? '';
+            $courierCell = $showCourier
+                ? '<td>' . e(optional($inv->courier)->full_name ?: '—') . '</td>'
+                : '';
             $html .= '<tr style="background:#fff8e1;animation:fadeIn 0.5s">'
                 . '<td>' . $inv->invoice_number . '</td>'
                 . '<td>' . $date . '</td>'
+                . '<td>—</td>'
                 . '<td>' . e($inv->sender_company) . '<br><small>' . e($inv->sender_name) . '</small></td>'
                 . '<td>' . e($inv->recipient_company) . '<br><small>' . e($inv->recipient_name) . '</small></td>'
+                . $courierCell
                 . '<td>' . $inv->weight . '</td>'
                 . '<td><button type="button" class="status-badge s-' . $inv->status . '" onclick="openStatusModal(' . $inv->id . ',' . $inv->status . ',\'' . $inv->invoice_number . '\')">' . $statusText . '</button></td>'
                 . '<td><a href="/admin/invoices/view/' . $inv->id . '" class="btn btn-sm btn-primary">Просмотр</a></td>'
@@ -141,7 +161,10 @@ class AdminController extends Controller
     public function invoices(Request $request)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        $query = Invoice::with('user')->orderBy('id', 'desc');
+        $query = Invoice::with(['user', 'courier'])->orderBy('id', 'desc');
+        if (session('role') === 'courier') {
+            $query->where('courier_id', session('staff_id'));
+        }
         if ($request->has('search') && $request->input('search') !== '') {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -170,20 +193,32 @@ class AdminController extends Controller
     public function viewInvoice($id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        $invoice = Invoice::findOrFail($id);
-        return view('admin.invoice_view', compact('invoice'));
+        $invoice = Invoice::with('courier')->findOrFail($id);
+        if (session('role') === 'courier' && (int) $invoice->courier_id !== (int) session('staff_id')) {
+            return redirect('/admin/invoices');
+        }
+        $couriers = Staff::where('role', 'courier')->orderBy('full_name')->get();
+        return view('admin.invoice_view', compact('invoice', 'couriers'));
     }
 
     public function updateInvoiceStatus(Request $request, $id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        Invoice::where('id', $id)->update(['status' => $request->input('status')]);
+        $invoice = Invoice::findOrFail($id);
+        if (session('role') === 'courier' && (int) $invoice->courier_id !== (int) session('staff_id')) {
+            return redirect('/admin/invoices');
+        }
+        $invoice->update(['status' => $request->input('status')]);
         return redirect('/admin/invoices')->with('success', 'Статус обновлён');
     }
 
     public function updateInvoice(Request $request, $id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
+        $invoice = Invoice::findOrFail($id);
+        if (session('role') === 'courier' && (int) $invoice->courier_id !== (int) session('staff_id')) {
+            return redirect('/admin/invoices');
+        }
         $data = [
             'status' => $request->input('status'),
             'volume_weight' => $request->input('volume_weight'),
@@ -192,6 +227,10 @@ class AdminController extends Controller
         ];
         if (session('role') === 'admin') {
             $data['payment'] = $request->input('payment');
+        }
+        if (in_array(session('role'), ['admin', 'dispatcher'], true)) {
+            $courierId = $request->input('courier_id');
+            $data['courier_id'] = $courierId !== '' && $courierId !== null ? (int) $courierId : null;
         }
         Invoice::where('id', $id)->update($data);
         return redirect('/admin/invoices/view/' . $id)->with('success', 'Данные сохранены');

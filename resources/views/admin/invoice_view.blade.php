@@ -30,6 +30,18 @@
                 <option value="4" @if($invoice->status==4) selected @endif>Отменена</option>
             </select>
         </div></div>
+        @if(in_array(session('role'), ['admin', 'dispatcher'], true))
+        <div class="inv-row"><div class="label">Курьер:</div><div class="value">
+            <select name="courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
+                <option value="">— не назначен —</option>
+                @foreach($couriers as $c)
+                    <option value="{{ $c->id }}" @if($invoice->courier_id == $c->id) selected @endif>{{ $c->full_name }}@if(!$c->active) (отключен)@endif</option>
+                @endforeach
+            </select>
+        </div></div>
+        @else
+        <div class="inv-row"><div class="label">Курьер:</div><div class="value">{{ optional($invoice->courier)->full_name ?: '—' }}</div></div>
+        @endif
 
         <div class="inv-section">Отправитель</div>
         <div class="inv-row"><div class="label">ФИО отправителя:</div><div class="value">{{ $invoice->sender_name }}</div></div>

@@ -10,7 +10,7 @@ class Invoice extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'invoice_number', 'status', 'user_id', 'date',
+        'invoice_number', 'status', 'user_id', 'courier_id', 'date',
         'sender_name', 'sender_phone', 'sender_company',
         'sender_city', 'sender_country', 'sender_region', 'sender_district', 'sender_address',
         'recipient_name', 'recipient_phone', 'recipient_company',
@@ -24,5 +24,10 @@ class Invoice extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function courier()
+    {
+        return $this->belongsTo(Staff::class, 'courier_id');
     }
 }
