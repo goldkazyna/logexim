@@ -55,6 +55,7 @@ Route::get('/cabinet/export_invoices', [CabinetController::class, 'exportInvoice
 
 // Admin
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\StaffController;
 Route::get('/admin', [AdminController::class, 'authForm']);
 Route::post('/admin/auth', [AdminController::class, 'auth']);
 Route::get('/admin/logout', [AdminController::class, 'logout']);
@@ -88,6 +89,15 @@ Route::get('/admin/cities/delete/{id}', [AdminController::class, 'deleteCity']);
 Route::get('/admin/tariffs/{type}', [AdminController::class, 'tariffs'])->where('type', 'avto|avia|zh');
 Route::post('/admin/tariffs/{type}/store', [AdminController::class, 'storeTariff'])->where('type', 'avto|avia|zh');
 Route::get('/admin/tariffs/{type}/delete/{id}', [AdminController::class, 'deleteTariff'])->where('type', 'avto|avia|zh');
+
+// Admin / Staff (доступ только для role=admin)
+Route::get('/admin/staff', [StaffController::class, 'index']);
+Route::get('/admin/staff/create', [StaffController::class, 'create']);
+Route::post('/admin/staff', [StaffController::class, 'store']);
+Route::get('/admin/staff/{id}/edit', [StaffController::class, 'edit'])->whereNumber('id');
+Route::post('/admin/staff/{id}', [StaffController::class, 'update'])->whereNumber('id');
+Route::post('/admin/staff/{id}/toggle', [StaffController::class, 'toggle'])->whereNumber('id');
+Route::post('/admin/staff/{id}/delete', [StaffController::class, 'destroy'])->whereNumber('id');
 
 // News
 use App\Http\Controllers\NewsController;
