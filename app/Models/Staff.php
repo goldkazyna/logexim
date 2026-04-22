@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Staff extends Model
+class Staff extends Authenticatable
 {
+    use HasApiTokens;
+
     protected $table = 'staff';
 
     protected $fillable = [
@@ -17,5 +20,9 @@ class Staff extends Model
         'email',
         'note',
         'active',
+    ];
+
+    protected $hidden = [
+        'password',
     ];
 }

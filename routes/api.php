@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\StaffAuthController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\TemplateController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Api\TemplateController;
 // Public routes
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/staff/auth', [StaffAuthController::class, 'login']);
 
 // Public reference data
 Route::get('/cities', [CityController::class, 'index']);
@@ -17,6 +19,10 @@ Route::get('/cities', [CityController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/profile', [AuthController::class, 'profile']);
+
+    // Staff
+    Route::post('/staff/logout', [StaffAuthController::class, 'logout']);
+    Route::get('/staff/profile', [StaffAuthController::class, 'profile']);
 
     // Invoices
     Route::get('/invoices', [InvoiceController::class, 'index']);
