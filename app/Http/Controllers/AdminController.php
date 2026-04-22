@@ -203,22 +203,14 @@ class AdminController extends Controller
 
     public function updateInvoiceStatus(Request $request, $id)
     {
-        if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        $invoice = Invoice::findOrFail($id);
-        if (session('role') === 'courier' && (int) $invoice->courier_id !== (int) session('staff_id')) {
-            return redirect('/admin/invoices');
-        }
-        $invoice->update(['status' => $request->input('status')]);
+        if ($r = $this->checkAuth(['admin', 'dispatcher'])) return $r;
+        Invoice::where('id', $id)->update(['status' => $request->input('status')]);
         return redirect('/admin/invoices')->with('success', 'Статус обновлён');
     }
 
     public function updateInvoice(Request $request, $id)
     {
-        if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        $invoice = Invoice::findOrFail($id);
-        if (session('role') === 'courier' && (int) $invoice->courier_id !== (int) session('staff_id')) {
-            return redirect('/admin/invoices');
-        }
+        if ($r = $this->checkAuth(['admin', 'dispatcher'])) return $r;
         $data = [
             'status' => $request->input('status'),
             'volume_weight' => $request->input('volume_weight'),
@@ -228,10 +220,8 @@ class AdminController extends Controller
         if (session('role') === 'admin') {
             $data['payment'] = $request->input('payment');
         }
-        if (in_array(session('role'), ['admin', 'dispatcher'], true)) {
-            $courierId = $request->input('courier_id');
-            $data['courier_id'] = $courierId !== '' && $courierId !== null ? (int) $courierId : null;
-        }
+        $courierId = $request->input('courier_id');
+        $data['courier_id'] = $courierId !== '' && $courierId !== null ? (int) $courierId : null;
         Invoice::where('id', $id)->update($data);
         return redirect('/admin/invoices/view/' . $id)->with('success', 'Данные сохранены');
     }

@@ -16,12 +16,17 @@
 </style>
 @endpush
 @section('content')
+@php
+    $canEdit = in_array(session('role'), ['admin', 'dispatcher'], true);
+    $statusLabels = [0=>'Заявка создана', 1=>'Принята в работу', 2=>'Отправлено', 3=>'Исполнена', 4=>'Отменена'];
+@endphp
 <div class="inv-back"><a href="/admin/invoices">&larr; Назад к списку</a></div>
 <div class="card">
     <div class="card-header">Накладная № {{ $invoice->invoice_number }}</div>
     <div class="card-body">
         <div class="inv-row"><div class="label">Дата:</div><div class="value">{{ \Carbon\Carbon::parse($invoice->date)->format('d.m.Y') }}</div></div>
         <div class="inv-row"><div class="label">Статус:</div><div class="value">
+            @if($canEdit)
             <select name="status" class="inv-edit-input" form="edit-invoice-form" style="width:200px">
                 <option value="0" @if($invoice->status==0) selected @endif>Заявка создана</option>
                 <option value="1" @if($invoice->status==1) selected @endif>Принята в работу</option>
@@ -29,8 +34,11 @@
                 <option value="3" @if($invoice->status==3) selected @endif>Исполнена</option>
                 <option value="4" @if($invoice->status==4) selected @endif>Отменена</option>
             </select>
+            @else
+            {{ $statusLabels[$invoice->status] ?? '—' }}
+            @endif
         </div></div>
-        @if(in_array(session('role'), ['admin', 'dispatcher'], true))
+        @if($canEdit)
         <div class="inv-row"><div class="label">Курьер:</div><div class="value">
             <select name="courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
                 <option value="">— не назначен —</option>
@@ -59,7 +67,13 @@
         <div class="inv-row"><div class="label">Описание вложения:</div><div class="value">{{ $invoice->description }}</div></div>
         <div class="inv-row"><div class="label">Количество мест:</div><div class="value">{{ $invoice->quantity }}</div></div>
         <div class="inv-row"><div class="label">Вес (кг):</div><div class="value">{{ $invoice->weight }}</div></div>
-        <div class="inv-row"><div class="label">Объёмный вес (кг):</div><div class="value"><input type="number" step="0.01" name="volume_weight" class="inv-edit-input" value="{{ $invoice->volume_weight }}" form="edit-invoice-form"></div></div>
+        <div class="inv-row"><div class="label">Объёмный вес (кг):</div><div class="value">
+            @if($canEdit)
+            <input type="number" step="0.01" name="volume_weight" class="inv-edit-input" value="{{ $invoice->volume_weight }}" form="edit-invoice-form">
+            @else
+            {{ $invoice->volume_weight }}
+            @endif
+        </div></div>
         <div class="inv-row"><div class="label">Хрупкий груз:</div><div class="value">{{ $invoice->fragile ? 'Да' : 'Нет' }}</div></div>
 
         @if(session('role') === 'admin')
@@ -83,15 +97,29 @@
         @endif
 
         <div class="inv-section">Доставка</div>
-        <div class="inv-row"><div class="label">Доставка по договору:</div><div class="value"><input type="date" name="plan_date" class="inv-edit-input" value="{{ $invoice->plan_date }}" form="edit-invoice-form" style="width:180px"></div></div>
-        <div class="inv-row"><div class="label">Фактическая доставка:</div><div class="value"><input type="date" name="fact_date" class="inv-edit-input" value="{{ $invoice->fact_date }}" form="edit-invoice-form" style="width:180px"></div></div>
+        <div class="inv-row"><div class="label">Доставка по договору:</div><div class="value">
+            @if($canEdit)
+            <input type="date" name="plan_date" class="inv-edit-input" value="{{ $invoice->plan_date }}" form="edit-invoice-form" style="width:180px">
+            @else
+            {{ $invoice->plan_date ?: '—' }}
+            @endif
+        </div></div>
+        <div class="inv-row"><div class="label">Фактическая доставка:</div><div class="value">
+            @if($canEdit)
+            <input type="date" name="fact_date" class="inv-edit-input" value="{{ $invoice->fact_date }}" form="edit-invoice-form" style="width:180px">
+            @else
+            {{ $invoice->fact_date ?: '—' }}
+            @endif
+        </div></div>
 
+        @if($canEdit)
         <form id="edit-invoice-form" action="/admin/invoices/update/{{ $invoice->id }}" method="post">
             @csrf
             <button type="submit" class="inv-save-btn">Сохранить изменения</button>
         </form>
         @if(session('success'))
         <span class="inv-success" style="display:inline">{{ session('success') }}</span>
+        @endif
         @endif
     </div>
 </div>

@@ -1,4 +1,7 @@
-@php $showCourier = in_array(session('role'), ['admin', 'dispatcher'], true); @endphp
+@php
+    $showCourier = in_array(session('role'), ['admin', 'dispatcher'], true);
+    $canChangeStatus = $showCourier;
+@endphp
 <table>
     <thead>
         <tr><th>№</th><th>Дата</th><th>ИИН/БИН</th><th>Отправитель</th><th>Получатель</th>@if($showCourier)<th>Курьер</th>@endif<th>Вес</th><th>Статус</th><th>Действие</th></tr>
@@ -16,7 +19,11 @@
         @endif
         <td>{{ $inv->weight }}</td>
         <td>
+            @if($canChangeStatus)
             <button type="button" class="status-badge s-{{ $inv->status }}" onclick="openStatusModal({{ $inv->id }}, {{ $inv->status }}, '{{ $inv->invoice_number }}')">
+            @else
+            <span class="status-badge s-{{ $inv->status }}" style="cursor:default">
+            @endif
                 @switch($inv->status)
                     @case(0) Заявка создана @break
                     @case(1) Принята в работу @break
@@ -24,7 +31,7 @@
                     @case(3) Исполнена @break
                     @case(4) Отменена @break
                 @endswitch
-            </button>
+            @if($canChangeStatus)</button>@else</span>@endif
         </td>
         <td><a href="/admin/invoices/view/{{ $inv->id }}" target="_blank" class="btn btn-sm btn-primary">Просмотр</a></td>
     </tr>
