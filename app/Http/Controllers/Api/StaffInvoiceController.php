@@ -168,7 +168,12 @@ class StaffInvoiceController extends Controller
                 'name' => (string) $inv->sender_name,
                 'company' => (string) $inv->sender_company,
                 'phone' => (string) $inv->sender_phone,
-                'address' => $this->composeAddress(
+                'address' => (string) $inv->sender_address,
+                'city' => (string) $inv->sender_city,
+                'region' => (string) $inv->sender_region,
+                'district' => (string) $inv->sender_district,
+                'country' => (string) $inv->sender_country,
+                'full_address' => $this->composeAddress(
                     $inv->sender_address,
                     $inv->sender_city,
                     $inv->sender_region,
@@ -179,7 +184,12 @@ class StaffInvoiceController extends Controller
                 'name' => (string) $inv->recipient_name,
                 'company' => (string) $inv->recipient_company,
                 'phone' => (string) $inv->recipient_phone,
-                'address' => $this->composeAddress(
+                'address' => (string) $inv->recipient_address,
+                'city' => (string) $inv->recipient_city,
+                'region' => (string) $inv->recipient_region,
+                'district' => (string) $inv->recipient_district,
+                'country' => (string) $inv->recipient_country,
+                'full_address' => $this->composeAddress(
                     $inv->recipient_address,
                     $inv->recipient_city,
                     $inv->recipient_region,
@@ -189,8 +199,13 @@ class StaffInvoiceController extends Controller
             'cargo' => [
                 'description' => (string) $inv->description,
                 'weight' => $inv->weight !== null ? $inv->weight . ' кг' : '',
+                'volume_weight' => $inv->volume_weight !== null && (string) $inv->volume_weight !== ''
+                    ? $inv->volume_weight . ' кг'
+                    : '',
                 'quantity' => $inv->quantity !== null ? $inv->quantity . ' мест' : '',
+                'fragile' => (bool) $inv->fragile,
             ],
+            'special' => (string) $inv->special,
         ];
 
         if ($full) {
