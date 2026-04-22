@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\StaffAuthController;
+use App\Http\Controllers\Api\StaffInvoiceController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\TemplateController;
@@ -23,6 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Staff
     Route::post('/staff/logout', [StaffAuthController::class, 'logout']);
     Route::get('/staff/profile', [StaffAuthController::class, 'profile']);
+    Route::get('/staff/invoices', [StaffInvoiceController::class, 'index']);
+    Route::get('/staff/invoices/{id}', [StaffInvoiceController::class, 'show'])->whereNumber('id');
 
     // Invoices
     Route::get('/invoices', [InvoiceController::class, 'index']);
