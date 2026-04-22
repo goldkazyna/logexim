@@ -66,17 +66,23 @@
             <span>Админ-панель</span>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="/admin"><i class="fas fa-home"></i> Дашборд</a></li>
-            <li><a href="/admin/users"><i class="fas fa-users"></i> Пользователи</a></li>
+            @php $role = session('role'); @endphp
+            @if($role === 'admin')
+                <li><a href="/admin"><i class="fas fa-home"></i> Дашборд</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Пользователи</a></li>
+                <li><a href="/admin/staff"><i class="fas fa-user-tie"></i> Сотрудники</a></li>
+            @endif
             @php $newInvoicesCount = \App\Models\Invoice::where('status', 0)->count(); @endphp
             <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Накладные <span id="invoice-badge" style="background:#D0171C;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:5px;{{ $newInvoicesCount > 0 ? '' : 'display:none' }}">{{ $newInvoicesCount }}</span></a></li>
-            <li><a href="/admin/orders"><i class="fas fa-truck"></i> Заказы/Трекинг</a></li>
-            <li><a href="/admin/news"><i class="fas fa-newspaper"></i> Новости</a></li>
-            <li><a href="/admin/pages"><i class="fas fa-file-alt"></i> Страницы</a></li>
-            <li><a href="/admin/cities"><i class="fas fa-city"></i> Города</a></li>
-            <li><a href="/admin/tariffs/avto"><i class="fas fa-car"></i> Тарифы Авто</a></li>
-            <li><a href="/admin/tariffs/avia"><i class="fas fa-plane"></i> Тарифы Авиа</a></li>
-            <li><a href="/admin/tariffs/zh"><i class="fas fa-train"></i> Тарифы Ж/Д</a></li>
+            @if($role === 'admin')
+                <li><a href="/admin/orders"><i class="fas fa-truck"></i> Заказы/Трекинг</a></li>
+                <li><a href="/admin/news"><i class="fas fa-newspaper"></i> Новости</a></li>
+                <li><a href="/admin/pages"><i class="fas fa-file-alt"></i> Страницы</a></li>
+                <li><a href="/admin/cities"><i class="fas fa-city"></i> Города</a></li>
+                <li><a href="/admin/tariffs/avto"><i class="fas fa-car"></i> Тарифы Авто</a></li>
+                <li><a href="/admin/tariffs/avia"><i class="fas fa-plane"></i> Тарифы Авиа</a></li>
+                <li><a href="/admin/tariffs/zh"><i class="fas fa-train"></i> Тарифы Ж/Д</a></li>
+            @endif
             <li><a href="/admin/logout" style="color:#ff6b6b"><i class="fas fa-sign-out-alt"></i> Выход</a></li>
         </ul>
     </aside>
@@ -84,6 +90,19 @@
         <div class="topbar">
             <div><strong>@yield('title', 'Админ-панель')</strong></div>
             <div class="topbar-right">
+                @php
+                    $role = session('role');
+                    if ($role === 'admin') {
+                        $who = 'Администратор';
+                    } elseif ($role === 'dispatcher') {
+                        $who = session('full_name') . ' (диспетчер)';
+                    } elseif ($role === 'courier') {
+                        $who = session('full_name') . ' (курьер)';
+                    } else {
+                        $who = '';
+                    }
+                @endphp
+                @if($who)<span style="color:#666;margin-right:15px">{{ $who }}</span>@endif
                 <a href="/" target="_blank"><i class="fas fa-external-link-alt"></i> На сайт</a>
             </div>
         </div>
