@@ -107,6 +107,17 @@
         @endif
         @endif
 
+        @if($invoice->pickup_signature)
+        <div class="inv-section">Забор курьером</div>
+        <div class="inv-row"><div class="label">Курьер:</div><div class="value">{{ optional($invoice->courier)->full_name ?: '—' }}</div></div>
+        <div class="inv-row"><div class="label">Подпись отправителя:</div><div class="value">
+            <a href="/storage/{{ $invoice->pickup_signature }}" target="_blank" style="display:inline-block">
+                <img src="/storage/{{ $invoice->pickup_signature }}" alt="Подпись отправителя"
+                     style="max-width:320px;max-height:200px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;padding:6px">
+            </a>
+        </div></div>
+        @endif
+
         <div class="inv-section">Доставка</div>
         <div class="inv-row"><div class="label">Доставка по договору:</div><div class="value">
             @if($canEdit)
