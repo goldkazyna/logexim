@@ -50,6 +50,7 @@
         <div class="inv-row"><div class="label">Объёмный вес (кг):</div><div class="value"><input type="number" step="0.01" name="volume_weight" class="inv-edit-input" value="{{ $invoice->volume_weight }}" form="edit-invoice-form"></div></div>
         <div class="inv-row"><div class="label">Хрупкий груз:</div><div class="value">{{ $invoice->fragile ? 'Да' : 'Нет' }}</div></div>
 
+        @if(session('role') === 'admin')
         <div class="inv-section">Информация об оплате</div>
         <div class="inv-row"><div class="label">Объявленная ценность:</div><div class="value">{{ $invoice->declared_value }} KZT</div></div>
         <div class="inv-row"><div class="label">Сумма оплаты (KZT):</div><div class="value"><input type="number" step="0.01" name="payment" class="inv-edit-input" value="{{ $invoice->payment }}" form="edit-invoice-form"></div></div>
@@ -66,6 +67,7 @@
         </div></div>
         @if($invoice->special)
         <div class="inv-row"><div class="label">Особые инструкции:</div><div class="value">{{ $invoice->special }}</div></div>
+        @endif
         @endif
 
         <div class="inv-section">Доставка</div>

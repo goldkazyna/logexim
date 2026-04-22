@@ -184,13 +184,16 @@ class AdminController extends Controller
     public function updateInvoice(Request $request, $id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        Invoice::where('id', $id)->update([
+        $data = [
             'status' => $request->input('status'),
             'volume_weight' => $request->input('volume_weight'),
-            'payment' => $request->input('payment'),
             'plan_date' => $request->input('plan_date'),
             'fact_date' => $request->input('fact_date'),
-        ]);
+        ];
+        if (session('role') === 'admin') {
+            $data['payment'] = $request->input('payment');
+        }
+        Invoice::where('id', $id)->update($data);
         return redirect('/admin/invoices/view/' . $id)->with('success', 'Данные сохранены');
     }
 
