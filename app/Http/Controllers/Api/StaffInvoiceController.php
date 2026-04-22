@@ -75,6 +75,13 @@ class StaffInvoiceController extends Controller
             return response()->json(['message' => 'Накладная не назначена вам'], 403);
         }
 
+        if ((int) $invoice->detail_status >= 2) {
+            return response()->json([
+                'message' => 'Накладная уже забрана — текущий этап: ' .
+                    (Invoice::DETAIL_STATUSES[$invoice->detail_status] ?? '—'),
+            ], 422);
+        }
+
         $data = $request->validate([
             'signature' => 'required|string',
         ]);
