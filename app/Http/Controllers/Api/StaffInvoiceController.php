@@ -130,12 +130,17 @@ class StaffInvoiceController extends Controller
         imagesavealpha($im, true);
         imagepalettetotruecolor($im);
 
-        $tmp = tempnam(sys_get_temp_dir(), 'sig_') . '.webp';
-        imagewebp($im, $tmp, 85);
+        ob_start();
+        $ok = imagewebp($im, null, 85);
+        $binary = ob_get_clean();
         imagedestroy($im);
 
-        $binary = file_get_contents($tmp);
-        @unlink($tmp);
+        if (!$ok || $binary === false || $binary === '') {
+            // Совсем fallback — сохраняем исходник как PNG
+            $pngPath = str_replace('.webp', '.png', $relative);
+            Storage::disk('public')->put($pngPath, $imageBinary);
+            return $pngPath;
+        }
 
         Storage::disk('public')->put($relative, $binary);
         return $relative;
