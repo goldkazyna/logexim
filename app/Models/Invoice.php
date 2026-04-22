@@ -9,8 +9,23 @@ class Invoice extends Model
     protected $table = 'invoices';
     public $timestamps = false;
 
+    public const DETAIL_STATUSES = [
+        0 => 'Заявка создана',
+        1 => 'Назначен курьер',
+        2 => 'Курьер забрал',
+        3 => 'На складе',
+        4 => 'Отправлено в пункт назначения',
+        5 => 'У курьера в пункте назначения',
+        6 => 'Доставлено',
+    ];
+
+    public function detailStatusLabel(): string
+    {
+        return self::DETAIL_STATUSES[$this->detail_status] ?? '—';
+    }
+
     protected $fillable = [
-        'invoice_number', 'status', 'user_id', 'courier_id', 'date',
+        'invoice_number', 'status', 'detail_status', 'user_id', 'courier_id', 'date',
         'sender_name', 'sender_phone', 'sender_company',
         'sender_city', 'sender_country', 'sender_region', 'sender_district', 'sender_address',
         'recipient_name', 'recipient_phone', 'recipient_company',

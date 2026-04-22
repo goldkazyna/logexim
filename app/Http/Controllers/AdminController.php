@@ -142,6 +142,7 @@ class AdminController extends Controller
             $courierCell = $showCourier
                 ? '<td>' . e(optional($inv->courier)->full_name ?: '—') . '</td>'
                 : '';
+            $detailText = Invoice::DETAIL_STATUSES[$inv->detail_status] ?? '—';
             $html .= '<tr style="background:#fff8e1;animation:fadeIn 0.5s">'
                 . '<td>' . $inv->invoice_number . '</td>'
                 . '<td>' . $date . '</td>'
@@ -151,6 +152,7 @@ class AdminController extends Controller
                 . $courierCell
                 . '<td>' . $inv->weight . '</td>'
                 . '<td><button type="button" class="status-badge s-' . $inv->status . '" onclick="openStatusModal(' . $inv->id . ',' . $inv->status . ',\'' . $inv->invoice_number . '\')">' . $statusText . '</button></td>'
+                . '<td><small>' . e($detailText) . '</small></td>'
                 . '<td><a href="/admin/invoices/view/' . $inv->id . '" class="btn btn-sm btn-primary">Просмотр</a></td>'
                 . '</tr>';
         }
@@ -211,6 +213,8 @@ class AdminController extends Controller
     public function updateInvoice(Request $request, $id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher'])) return $r;
+        $invoice = Invoice::findOrFail($id);
+
         $data = [
             'status' => $request->input('status'),
             'volume_weight' => $request->input('volume_weight'),
@@ -220,9 +224,20 @@ class AdminController extends Controller
         if (session('role') === 'admin') {
             $data['payment'] = $request->input('payment');
         }
+
         $courierId = $request->input('courier_id');
-        $data['courier_id'] = $courierId !== '' && $courierId !== null ? (int) $courierId : null;
-        Invoice::where('id', $id)->update($data);
+        $courierId = $courierId !== '' && $courierId !== null ? (int) $courierId : null;
+        $data['courier_id'] = $courierId;
+
+        $detail = $request->input('detail_status');
+        $data['detail_status'] = $detail !== null && $detail !== '' ? (int) $detail : 0;
+
+        // Автосмена: если назначили курьера и детальный статус ещё «Заявка создана» — ставим «Назначен курьер»
+        if ($courierId && (int) $invoice->courier_id !== $courierId && $data['detail_status'] === 0) {
+            $data['detail_status'] = 1;
+        }
+
+        $invoice->update($data);
         return redirect('/admin/invoices/view/' . $id)->with('success', 'Данные сохранены');
     }
 

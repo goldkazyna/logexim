@@ -4,7 +4,7 @@
 @endphp
 <table>
     <thead>
-        <tr><th>№</th><th>Дата</th><th>ИИН/БИН</th><th>Отправитель</th><th>Получатель</th>@if($showCourier)<th>Курьер</th>@endif<th>Вес</th><th>Статус</th><th>Действие</th></tr>
+        <tr><th>№</th><th>Дата</th><th>ИИН/БИН</th><th>Отправитель</th><th>Получатель</th>@if($showCourier)<th>Курьер</th>@endif<th>Вес</th><th>Статус</th><th>Этап</th><th>Действие</th></tr>
     </thead>
     <tbody>
     @forelse($invoices as $inv)
@@ -33,10 +33,11 @@
                 @endswitch
             @if($canChangeStatus)</button>@else</span>@endif
         </td>
+        <td><small>{{ $inv->detailStatusLabel() }}</small></td>
         <td><a href="/admin/invoices/view/{{ $inv->id }}" target="_blank" class="btn btn-sm btn-primary">Просмотр</a></td>
     </tr>
     @empty
-    <tr><td colspan="{{ $showCourier ? 9 : 8 }}" style="text-align:center;padding:20px;color:#888">Накладные не найдены</td></tr>
+    <tr><td colspan="{{ $showCourier ? 10 : 9 }}" style="text-align:center;padding:20px;color:#888">Накладные не найдены</td></tr>
     @endforelse
     </tbody>
 </table>

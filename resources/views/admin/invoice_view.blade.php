@@ -38,6 +38,17 @@
             {{ $statusLabels[$invoice->status] ?? '—' }}
             @endif
         </div></div>
+        <div class="inv-row"><div class="label">Этап доставки:</div><div class="value">
+            @if($canEdit)
+            <select name="detail_status" class="inv-edit-input" form="edit-invoice-form" style="width:280px">
+                @foreach(\App\Models\Invoice::DETAIL_STATUSES as $k => $label)
+                    <option value="{{ $k }}" @if((int)$invoice->detail_status === $k) selected @endif>{{ $label }}</option>
+                @endforeach
+            </select>
+            @else
+            {{ $invoice->detailStatusLabel() }}
+            @endif
+        </div></div>
         @if($canEdit)
         <div class="inv-row"><div class="label">Курьер:</div><div class="value">
             <select name="courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
