@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin;
+use App\Models\Staff;
 use App\Models\User;
 use App\Models\Invoice;
 use App\Models\TmOrder;
@@ -16,34 +17,59 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
-    private function checkAuth()
+    private function checkAuth(array $roles = ['admin'])
     {
-        if (!session('admin')) return redirect('/admin');
+        $role = session('role');
+        if (!$role || !in_array($role, $roles, true)) {
+            return redirect('/admin');
+        }
         return null;
     }
 
     // === AUTH ===
     public function authForm()
     {
-        if (session('admin')) return redirect('/admin/dashboard');
+        if (session('role')) {
+            return session('role') === 'admin'
+                ? redirect('/admin/dashboard')
+                : redirect('/admin/invoices');
+        }
         return view('admin.auth', ['error' => '']);
     }
 
     public function auth(Request $request)
     {
         $login = $request->input('login');
-        $password = sha1(md5($request->input('password')));
-        $admin = Admin::where('login', $login)->where('password', $password)->first();
+        $passwordHash = sha1(md5($request->input('password')));
+
+        // 1) Admin
+        $admin = Admin::where('login', $login)->where('password', $passwordHash)->first();
         if ($admin) {
-            session(['admin' => $login]);
+            session(['admin' => $login, 'role' => 'admin']);
             return redirect('/admin/dashboard');
         }
+
+        // 2) Staff (dispatcher | courier)
+        $staff = Staff::where('login', $login)
+            ->where('password', $passwordHash)
+            ->where('active', 1)
+            ->first();
+        if ($staff) {
+            session([
+                'staff_id' => $staff->id,
+                'staff_login' => $staff->login,
+                'role' => $staff->role,
+                'full_name' => $staff->full_name,
+            ]);
+            return redirect('/admin/invoices');
+        }
+
         return view('admin.auth', ['error' => 'Неверный логин или пароль']);
     }
 
     public function logout()
     {
-        session()->forget('admin');
+        session()->flush();
         return redirect('/admin');
     }
 
@@ -86,7 +112,9 @@ class AdminController extends Controller
 
     public function checkNewInvoices(Request $request)
     {
-        if (!session('admin')) return response()->json(['error' => 'unauthorized'], 401);
+        if (!in_array(session('role'), ['admin', 'dispatcher', 'courier'], true)) {
+            return response()->json(['error' => 'unauthorized'], 401);
+        }
         $lastId = $request->input('last_id', 0);
         $count = Invoice::where('status', 0)->count();
         $newInvoices = Invoice::where('id', '>', $lastId)->orderBy('id', 'desc')->get();
@@ -112,7 +140,7 @@ class AdminController extends Controller
     // === INVOICES ===
     public function invoices(Request $request)
     {
-        if ($r = $this->checkAuth()) return $r;
+        if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
         $query = Invoice::with('user')->orderBy('id', 'desc');
         if ($request->has('search') && $request->input('search') !== '') {
             $search = $request->input('search');
@@ -141,21 +169,21 @@ class AdminController extends Controller
 
     public function viewInvoice($id)
     {
-        if ($r = $this->checkAuth()) return $r;
+        if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
         $invoice = Invoice::findOrFail($id);
         return view('admin.invoice_view', compact('invoice'));
     }
 
     public function updateInvoiceStatus(Request $request, $id)
     {
-        if ($r = $this->checkAuth()) return $r;
+        if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
         Invoice::where('id', $id)->update(['status' => $request->input('status')]);
         return redirect('/admin/invoices')->with('success', 'Статус обновлён');
     }
 
     public function updateInvoice(Request $request, $id)
     {
-        if ($r = $this->checkAuth()) return $r;
+        if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
         Invoice::where('id', $id)->update([
             'status' => $request->input('status'),
             'volume_weight' => $request->input('volume_weight'),
