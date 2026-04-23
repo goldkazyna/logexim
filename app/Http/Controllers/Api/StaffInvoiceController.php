@@ -235,6 +235,53 @@ class StaffInvoiceController extends Controller
         ]);
     }
 
+    // POST /api/staff/invoices/{id}/deliver — курьер-получатель доставил, подпись получателя
+    public function deliver(Request $request, $id)
+    {
+        $staff = $request->user();
+        $invoice = Invoice::findOrFail($id);
+
+        if ($staff->role !== 'courier') {
+            return response()->json(['message' => 'Действие доступно только курьеру'], 403);
+        }
+        if ((int) $invoice->receiving_courier_id !== (int) $staff->id) {
+            return response()->json(['message' => 'Вы не назначены принимающим курьером этой накладной'], 403);
+        }
+
+        $from = (int) $invoice->detail_status;
+        if ($from !== 5) {
+            return response()->json([
+                'message' => $from < 5
+                    ? 'Накладная ещё не получена курьером в пункте назначения'
+                    : 'Накладная уже доставлена',
+            ], 422);
+        }
+
+        $data = $request->validate(['signature' => 'required|string']);
+        $decoded = $this->decodeBase64Image($data['signature']);
+        if ($decoded === null) {
+            return response()->json(['message' => 'Некорректные данные подписи'], 422);
+        }
+
+        $relativePath = $this->saveSignatureAsWebp($invoice->id, $decoded, 'delivery');
+
+        $invoice->update([
+            'delivery_signature' => $relativePath,
+            'delivered_at' => now(),
+            'detail_status' => 6,
+            'status' => 3, // Исполнена
+        ]);
+
+        $this->logEvent($invoice, $staff, 'delivery', $from, 6, [
+            'signature_path' => $relativePath,
+        ]);
+
+        return response()->json([
+            'message' => 'Накладная доставлена',
+            'invoice' => $this->present($invoice->fresh(['courier', 'warehouse', 'receivingCourier']), full: true),
+        ]);
+    }
+
     // GET /api/staff/dashboard — сводка для кладовщика
     public function dashboard(Request $request)
     {
@@ -346,9 +393,9 @@ class StaffInvoiceController extends Controller
         return $bin;
     }
 
-    private function saveSignatureAsWebp(int $invoiceId, string $imageBinary): string
+    private function saveSignatureAsWebp(int $invoiceId, string $imageBinary, string $kind = 'pickup'): string
     {
-        $dir = 'signatures/pickup';
+        $dir = "signatures/{$kind}";
         $filename = "{$invoiceId}_" . date('Ymd_His') . '.webp';
         $relative = "{$dir}/{$filename}";
 
@@ -448,8 +495,12 @@ class StaffInvoiceController extends Controller
             $data['special'] = (string) $inv->special;
             $data['received_at'] = optional($inv->received_at)?->format('d.m.Y H:i');
             $data['shipped_at'] = optional($inv->shipped_at)?->format('d.m.Y H:i');
+            $data['delivered_at'] = optional($inv->delivered_at)?->format('d.m.Y H:i');
             $data['pickup_signature_url'] = $inv->pickup_signature
                 ? Storage::disk('public')->url($inv->pickup_signature)
+                : null;
+            $data['delivery_signature_url'] = $inv->delivery_signature
+                ? Storage::disk('public')->url($inv->delivery_signature)
                 : null;
         }
 

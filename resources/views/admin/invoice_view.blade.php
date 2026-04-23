@@ -127,6 +127,22 @@
         </div></div>
         @endif
 
+        @if($invoice->delivery_signature || $invoice->delivered_at)
+        <div class="inv-section">Доставка получателю</div>
+        <div class="inv-row"><div class="label">Курьер-получатель:</div><div class="value">{{ optional($invoice->receivingCourier)->full_name ?: '—' }}</div></div>
+        @if($invoice->delivered_at)
+        <div class="inv-row"><div class="label">Дата доставки:</div><div class="value">{{ \Carbon\Carbon::parse($invoice->delivered_at)->format('d.m.Y H:i') }}</div></div>
+        @endif
+        @if($invoice->delivery_signature)
+        <div class="inv-row"><div class="label">Подпись получателя:</div><div class="value">
+            <a href="/storage/{{ $invoice->delivery_signature }}" target="_blank" style="display:inline-block">
+                <img src="/storage/{{ $invoice->delivery_signature }}" alt="Подпись получателя"
+                     style="max-width:320px;max-height:200px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;padding:6px">
+            </a>
+        </div></div>
+        @endif
+        @endif
+
         <div class="inv-section">Доставка</div>
         <div class="inv-row"><div class="label">Доставка по договору:</div><div class="value">
             @if($canEdit)
