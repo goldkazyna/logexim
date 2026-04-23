@@ -24,10 +24,13 @@ class StaffInvoiceController extends Controller
     public function index(Request $request)
     {
         $staff = $request->user();
-        $query = Invoice::with(['courier', 'warehouse'])->orderBy('id', 'desc');
+        $query = Invoice::with(['courier', 'warehouse', 'receivingCourier'])->orderBy('id', 'desc');
 
         if ($staff->role === 'courier') {
-            $query->where('courier_id', $staff->id);
+            $query->where(function ($q) use ($staff) {
+                $q->where('courier_id', $staff->id)
+                  ->orWhere('receiving_courier_id', $staff->id);
+            });
         } elseif ($staff->role === 'warehouse') {
             // Кладовщик видит: что сейчас на приёмку (detail=2) + что у него на складе (detail=3, warehouse_id=он)
             $query->where(function ($q) use ($staff) {
@@ -48,9 +51,9 @@ class StaffInvoiceController extends Controller
     public function show(Request $request, $id)
     {
         $staff = $request->user();
-        $invoice = Invoice::with(['courier', 'warehouse', 'events'])->findOrFail($id);
+        $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier', 'events'])->findOrFail($id);
 
-        if ($staff->role === 'courier' && (int) $invoice->courier_id !== (int) $staff->id) {
+        if ($staff->role === 'courier' && !$this->courierCanAccess($invoice, $staff)) {
             return response()->json(['message' => 'Нет доступа'], 403);
         }
 
@@ -60,17 +63,23 @@ class StaffInvoiceController extends Controller
     public function findByNumber(Request $request, $number)
     {
         $staff = $request->user();
-        $invoice = Invoice::with(['courier', 'warehouse'])
+        $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier'])
             ->where('invoice_number', $number)->first();
 
         if (!$invoice) {
             return response()->json(['message' => 'Накладная не найдена'], 404);
         }
-        if ($staff->role === 'courier' && (int) $invoice->courier_id !== (int) $staff->id) {
+        if ($staff->role === 'courier' && !$this->courierCanAccess($invoice, $staff)) {
             return response()->json(['message' => 'Накладная не назначена вам'], 403);
         }
 
         return response()->json(['invoice' => $this->present($invoice, full: true)]);
+    }
+
+    private function courierCanAccess(Invoice $invoice, $staff): bool
+    {
+        return (int) $invoice->courier_id === (int) $staff->id
+            || (int) $invoice->receiving_courier_id === (int) $staff->id;
     }
 
     // POST /api/staff/invoices/{id}/pickup — курьер забрал
@@ -191,6 +200,38 @@ class StaffInvoiceController extends Controller
         return response()->json([
             'message' => 'Отправлено со склада',
             'invoice' => $this->present($invoice->fresh(['courier', 'warehouse']), full: true),
+        ]);
+    }
+
+    // POST /api/staff/invoices/{id}/destination-pickup — курьер-получатель забрал со склада
+    public function destinationPickup(Request $request, $id)
+    {
+        $staff = $request->user();
+        $invoice = Invoice::findOrFail($id);
+
+        if ($staff->role !== 'courier') {
+            return response()->json(['message' => 'Действие доступно только курьеру'], 403);
+        }
+        if ((int) $invoice->receiving_courier_id !== (int) $staff->id) {
+            return response()->json(['message' => 'Вы не назначены принимающим курьером этой накладной'], 403);
+        }
+
+        $from = (int) $invoice->detail_status;
+        if ($from !== 4) {
+            return response()->json([
+                'message' => $from < 4
+                    ? 'Накладная ещё не отправлена со склада'
+                    : 'Накладная уже получена курьером — текущий этап: ' .
+                      (Invoice::DETAIL_STATUSES[$from] ?? '—'),
+            ], 422);
+        }
+
+        $invoice->update(['detail_status' => 5]);
+        $this->logEvent($invoice, $staff, 'destination_pickup', $from, 5);
+
+        return response()->json([
+            'message' => 'Груз принят курьером',
+            'invoice' => $this->present($invoice->fresh(['courier', 'warehouse', 'receivingCourier']), full: true),
         ]);
     }
 
@@ -358,7 +399,10 @@ class StaffInvoiceController extends Controller
             'detail_status_label' => Invoice::DETAIL_STATUSES[$detailStatus] ?? '',
             'status_key' => $statusKey,
             'created_at' => $createdAt,
+            'courier_id' => $inv->courier_id ? (int) $inv->courier_id : null,
             'courier_name' => optional($inv->courier)->full_name,
+            'receiving_courier_id' => $inv->receiving_courier_id ? (int) $inv->receiving_courier_id : null,
+            'receiving_courier_name' => optional($inv->receivingCourier)->full_name,
             'warehouse_name' => optional($inv->warehouse)->full_name,
             'warehouse_location' => optional($inv->warehouse)->warehouse_location,
             'sender' => [

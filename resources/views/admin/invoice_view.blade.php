@@ -50,7 +50,7 @@
             @endif
         </div></div>
         @if($canEdit)
-        <div class="inv-row"><div class="label">Курьер:</div><div class="value">
+        <div class="inv-row"><div class="label">Курьер (отправка):</div><div class="value">
             <select name="courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
                 <option value="">— не назначен —</option>
                 @foreach($couriers as $c)
@@ -58,8 +58,17 @@
                 @endforeach
             </select>
         </div></div>
+        <div class="inv-row"><div class="label">Курьер (приём в пункте):</div><div class="value">
+            <select name="receiving_courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
+                <option value="">— не назначен —</option>
+                @foreach($receivingCouriers as $c)
+                    <option value="{{ $c->id }}" @if($invoice->receiving_courier_id == $c->id) selected @endif>{{ $c->full_name }}@if(!$c->active) (отключен)@endif</option>
+                @endforeach
+            </select>
+        </div></div>
         @else
-        <div class="inv-row"><div class="label">Курьер:</div><div class="value">{{ optional($invoice->courier)->full_name ?: '—' }}</div></div>
+        <div class="inv-row"><div class="label">Курьер (отправка):</div><div class="value">{{ optional($invoice->courier)->full_name ?: '—' }}</div></div>
+        <div class="inv-row"><div class="label">Курьер (приём в пункте):</div><div class="value">{{ optional($invoice->receivingCourier)->full_name ?: '—' }}</div></div>
         @endif
 
         <div class="inv-section">Отправитель</div>

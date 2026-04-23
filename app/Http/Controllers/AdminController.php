@@ -196,12 +196,13 @@ class AdminController extends Controller
     public function viewInvoice($id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        $invoice = Invoice::with(['courier', 'warehouse', 'events'])->findOrFail($id);
+        $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier', 'events'])->findOrFail($id);
         if (session('role') === 'courier' && (int) $invoice->courier_id !== (int) session('staff_id')) {
             return redirect('/admin/invoices');
         }
         $couriers = Staff::where('role', 'courier')->orderBy('full_name')->get();
-        return view('admin.invoice_view', compact('invoice', 'couriers'));
+        $receivingCouriers = $couriers; // тот же список
+        return view('admin.invoice_view', compact('invoice', 'couriers', 'receivingCouriers'));
     }
 
     public function updateInvoiceStatus(Request $request, $id)
@@ -242,6 +243,13 @@ class AdminController extends Controller
         $courierId = $courierId !== '' && $courierId !== null ? (int) $courierId : null;
         $data['courier_id'] = $courierId;
 
+        $receivingCourierId = $request->input('receiving_courier_id');
+        $receivingCourierId = $receivingCourierId !== '' && $receivingCourierId !== null
+            ? (int) $receivingCourierId : null;
+        $data['receiving_courier_id'] = $receivingCourierId;
+
+        $oldReceivingCourierId = $invoice->receiving_courier_id ? (int) $invoice->receiving_courier_id : null;
+
         $detail = $request->input('detail_status');
         $data['detail_status'] = $detail !== null && $detail !== '' ? (int) $detail : 0;
 
@@ -259,6 +267,14 @@ class AdminController extends Controller
                 'from_courier_id' => $oldCourierId,
                 'to_courier_id' => $courierId,
                 'courier_name' => $courierName,
+            ]);
+        }
+        if ($oldReceivingCourierId !== $receivingCourierId) {
+            $rcName = $receivingCourierId ? optional(Staff::find($receivingCourierId))->full_name : null;
+            $this->logAdminEvent($invoice, 'receiving_courier_assigned', null, null, [
+                'from_courier_id' => $oldReceivingCourierId,
+                'to_courier_id' => $receivingCourierId,
+                'courier_name' => $rcName,
             ]);
         }
         if ($oldDetail !== (int) $data['detail_status']) {

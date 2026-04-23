@@ -28,9 +28,11 @@ class InvoiceEvent extends Model
 
     public const EVENT_LABELS = [
         'courier_assigned' => 'Назначен курьер',
+        'receiving_courier_assigned' => 'Назначен курьер-получатель',
         'pickup' => 'Курьер забрал груз',
         'warehouse_receive' => 'Принято на склад',
         'warehouse_ship' => 'Отправлено со склада',
+        'destination_pickup' => 'Курьер забрал со склада назначения',
         'delivery' => 'Доставлено получателю',
         'status_changed' => 'Изменён основной статус',
         'detail_changed' => 'Изменён этап доставки',
