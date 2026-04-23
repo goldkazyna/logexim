@@ -104,6 +104,8 @@
                         $who = session('full_name') . ' (диспетчер)';
                     } elseif ($role === 'courier') {
                         $who = session('full_name') . ' (курьер)';
+                    } elseif ($role === 'warehouse') {
+                        $who = session('full_name') . ' (кладовщик)';
                     } else {
                         $who = '';
                     }

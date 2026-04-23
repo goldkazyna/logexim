@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\Staff;
 use App\Models\User;
 use App\Models\Invoice;
+use App\Models\InvoiceEvent;
 use App\Models\TmOrder;
 use App\Models\TmNews;
 use App\Models\TmPage;
@@ -195,7 +196,7 @@ class AdminController extends Controller
     public function viewInvoice($id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        $invoice = Invoice::with('courier')->findOrFail($id);
+        $invoice = Invoice::with(['courier', 'warehouse', 'events'])->findOrFail($id);
         if (session('role') === 'courier' && (int) $invoice->courier_id !== (int) session('staff_id')) {
             return redirect('/admin/invoices');
         }
@@ -206,7 +207,16 @@ class AdminController extends Controller
     public function updateInvoiceStatus(Request $request, $id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher'])) return $r;
-        Invoice::where('id', $id)->update(['status' => $request->input('status')]);
+        $invoice = Invoice::findOrFail($id);
+        $oldStatus = (int) $invoice->status;
+        $newStatus = (int) $request->input('status');
+        $invoice->update(['status' => $newStatus]);
+        if ($oldStatus !== $newStatus) {
+            $this->logAdminEvent($invoice, 'status_changed', null, null, [
+                'from_status' => $oldStatus,
+                'to_status' => $newStatus,
+            ]);
+        }
         return redirect('/admin/invoices')->with('success', 'Статус обновлён');
     }
 
@@ -214,6 +224,9 @@ class AdminController extends Controller
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher'])) return $r;
         $invoice = Invoice::findOrFail($id);
+        $oldStatus = (int) $invoice->status;
+        $oldDetail = (int) $invoice->detail_status;
+        $oldCourierId = $invoice->courier_id ? (int) $invoice->courier_id : null;
 
         $data = [
             'status' => $request->input('status'),
@@ -232,13 +245,50 @@ class AdminController extends Controller
         $detail = $request->input('detail_status');
         $data['detail_status'] = $detail !== null && $detail !== '' ? (int) $detail : 0;
 
-        // Автосмена: если назначили курьера и детальный статус ещё «Заявка создана» — ставим «Назначен курьер»
-        if ($courierId && (int) $invoice->courier_id !== $courierId && $data['detail_status'] === 0) {
+        // Автосмена: если назначили курьера и detail ещё «Заявка создана» — ставим «Назначен курьер»
+        if ($courierId && $oldCourierId !== $courierId && $data['detail_status'] === 0) {
             $data['detail_status'] = 1;
         }
 
         $invoice->update($data);
+
+        // Логируем значимые изменения
+        if ($oldCourierId !== $courierId) {
+            $courierName = $courierId ? optional(Staff::find($courierId))->full_name : null;
+            $this->logAdminEvent($invoice, 'courier_assigned', null, null, [
+                'from_courier_id' => $oldCourierId,
+                'to_courier_id' => $courierId,
+                'courier_name' => $courierName,
+            ]);
+        }
+        if ($oldDetail !== (int) $data['detail_status']) {
+            $this->logAdminEvent($invoice, 'detail_changed', $oldDetail, (int) $data['detail_status']);
+        }
+        if ($oldStatus !== (int) $data['status']) {
+            $this->logAdminEvent($invoice, 'status_changed', null, null, [
+                'from_status' => $oldStatus,
+                'to_status' => (int) $data['status'],
+            ]);
+        }
+
         return redirect('/admin/invoices/view/' . $id)->with('success', 'Данные сохранены');
+    }
+
+    private function logAdminEvent(Invoice $invoice, string $event, ?int $fromDetail, ?int $toDetail, array $meta = []): void
+    {
+        $role = session('role');
+        InvoiceEvent::create([
+            'invoice_id' => $invoice->id,
+            'event' => $event,
+            'from_detail_status' => $fromDetail,
+            'to_detail_status' => $toDetail,
+            'actor_type' => $role === 'admin' ? 'admin' : 'staff',
+            'actor_id' => session('staff_id'),
+            'actor_role' => $role,
+            'actor_name' => $role === 'admin' ? 'Администратор' : session('full_name'),
+            'meta' => $meta ?: null,
+            'created_at' => now(),
+        ]);
     }
 
     // === ORDERS ===

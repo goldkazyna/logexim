@@ -2,6 +2,15 @@
 
 @section('title', 'Новый сотрудник')
 
+@push('scripts')
+<script>
+function toggleWarehouseField() {
+    var role = document.getElementById('role-select').value;
+    document.getElementById('warehouse-location-row').style.display = role === 'warehouse' ? '' : 'none';
+}
+</script>
+@endpush
+
 @section('content')
 <div class="card">
     <div class="card-header">Новый сотрудник</div>
@@ -27,10 +36,15 @@
             </div>
             <div class="form-group">
                 <label>Роль *</label>
-                <select name="role" class="form-control" required>
+                <select name="role" id="role-select" class="form-control" required onchange="toggleWarehouseField()">
                     <option value="dispatcher" {{ old('role') === 'dispatcher' ? 'selected' : '' }}>Диспетчер</option>
                     <option value="courier" {{ old('role') === 'courier' ? 'selected' : '' }}>Курьер</option>
+                    <option value="warehouse" {{ old('role') === 'warehouse' ? 'selected' : '' }}>Кладовщик</option>
                 </select>
+            </div>
+            <div class="form-group" id="warehouse-location-row" style="{{ old('role') === 'warehouse' ? '' : 'display:none' }}">
+                <label>Локация склада</label>
+                <input type="text" name="warehouse_location" class="form-control" value="{{ old('warehouse_location') }}" placeholder="Например: Алматы — Центральный">
             </div>
             <div class="form-group">
                 <label>Телефон</label>

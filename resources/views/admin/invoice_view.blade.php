@@ -134,6 +134,49 @@
             @endif
         </div></div>
 
+        @if($invoice->events && count($invoice->events))
+        <div class="inv-section">История накладной</div>
+        <div style="background:#f8f9fa;border-radius:10px;padding:14px 18px;margin-bottom:14px">
+            @foreach($invoice->events as $ev)
+            <div style="display:flex;gap:14px;padding:8px 0;{{ !$loop->last ? 'border-bottom:1px solid #eee' : '' }}">
+                <div style="width:140px;font-size:12px;color:#888">
+                    {{ $ev->created_at ? \Carbon\Carbon::parse($ev->created_at)->format('d.m.Y H:i') : '—' }}
+                </div>
+                <div style="flex:1">
+                    <div style="font-weight:600;font-size:14px;color:#1a1a1a">{{ $ev->label() }}</div>
+                    <div style="font-size:12px;color:#666;margin-top:2px">
+                        @php
+                            $actor = $ev->actor_name ?: ($ev->actor_role ?: '—');
+                            $roleRu = [
+                                'admin' => 'админ',
+                                'dispatcher' => 'диспетчер',
+                                'courier' => 'курьер',
+                                'warehouse' => 'кладовщик',
+                            ][$ev->actor_role] ?? null;
+                        @endphp
+                        {{ $actor }}@if($roleRu) ({{ $roleRu }})@endif
+                        @if($ev->from_detail_status !== null && $ev->to_detail_status !== null)
+                            · {{ \App\Models\Invoice::DETAIL_STATUSES[$ev->from_detail_status] ?? '?' }} → {{ \App\Models\Invoice::DETAIL_STATUSES[$ev->to_detail_status] ?? '?' }}
+                        @endif
+                        @if(isset($ev->meta['courier_name']))
+                            · назначен курьер: {{ $ev->meta['courier_name'] }}
+                        @endif
+                        @if(isset($ev->meta['warehouse_location']))
+                            · склад: {{ $ev->meta['warehouse_location'] }}
+                        @endif
+                        @if(isset($ev->meta['from_status']) && isset($ev->meta['to_status']))
+                            @php
+                                $statuses = [0=>'Заявка создана',1=>'Принята в работу',2=>'Отправлено',3=>'Исполнена',4=>'Отменена'];
+                            @endphp
+                            · статус: {{ $statuses[$ev->meta['from_status']] ?? '?' }} → {{ $statuses[$ev->meta['to_status']] ?? '?' }}
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
         @if($canEdit)
         <form id="edit-invoice-form" action="/admin/invoices/update/{{ $invoice->id }}" method="post">
             @csrf

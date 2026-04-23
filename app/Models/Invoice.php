@@ -25,7 +25,8 @@ class Invoice extends Model
     }
 
     protected $fillable = [
-        'invoice_number', 'status', 'detail_status', 'pickup_signature', 'user_id', 'courier_id', 'date',
+        'invoice_number', 'status', 'detail_status', 'pickup_signature',
+        'user_id', 'courier_id', 'warehouse_id', 'received_at', 'shipped_at', 'date',
         'sender_name', 'sender_phone', 'sender_company',
         'sender_city', 'sender_country', 'sender_region', 'sender_district', 'sender_address',
         'recipient_name', 'recipient_phone', 'recipient_company',
@@ -44,5 +45,15 @@ class Invoice extends Model
     public function courier()
     {
         return $this->belongsTo(Staff::class, 'courier_id');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Staff::class, 'warehouse_id');
+    }
+
+    public function events()
+    {
+        return $this->hasMany(InvoiceEvent::class)->orderBy('id');
     }
 }

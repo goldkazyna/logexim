@@ -38,10 +38,11 @@ class StaffController extends Controller
             'full_name' => 'required|string|max:255',
             'login'     => 'required|string|max:100|unique:staff,login',
             'password'  => 'required|string|min:4',
-            'role'      => 'required|in:dispatcher,courier',
+            'role'      => 'required|in:dispatcher,courier,warehouse',
             'phone'     => 'nullable|string|max:50',
             'email'     => 'nullable|email|max:255',
             'note'      => 'nullable|string',
+            'warehouse_location' => 'nullable|string|max:255',
             'active'    => 'nullable',
         ]);
 
@@ -57,6 +58,7 @@ class StaffController extends Controller
             'phone'     => $data['phone'] ?? null,
             'email'     => $data['email'] ?? null,
             'note'      => $data['note'] ?? null,
+            'warehouse_location' => $data['role'] === 'warehouse' ? ($data['warehouse_location'] ?? null) : null,
             'active'    => $request->has('active') ? 1 : 0,
         ]);
 
@@ -79,10 +81,11 @@ class StaffController extends Controller
             'full_name' => 'required|string|max:255',
             'login'     => ['required', 'string', 'max:100', Rule::unique('staff', 'login')->ignore($item->id)],
             'password'  => 'nullable|string|min:4',
-            'role'      => 'required|in:dispatcher,courier',
+            'role'      => 'required|in:dispatcher,courier,warehouse',
             'phone'     => 'nullable|string|max:50',
             'email'     => 'nullable|email|max:255',
             'note'      => 'nullable|string',
+            'warehouse_location' => 'nullable|string|max:255',
             'active'    => 'nullable',
         ]);
 
@@ -97,6 +100,7 @@ class StaffController extends Controller
             'phone'     => $data['phone'] ?? null,
             'email'     => $data['email'] ?? null,
             'note'      => $data['note'] ?? null,
+            'warehouse_location' => $data['role'] === 'warehouse' ? ($data['warehouse_location'] ?? null) : null,
             'active'    => $request->has('active') ? 1 : 0,
         ];
 

@@ -19,6 +19,7 @@ class Staff extends Authenticatable
         'phone',
         'email',
         'note',
+        'warehouse_location',
         'active',
     ];
 
