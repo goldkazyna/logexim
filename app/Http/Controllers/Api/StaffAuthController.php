@@ -64,6 +64,7 @@ class StaffAuthController extends Controller
             'role' => $staff->role,
             'phone' => $staff->phone,
             'email' => $staff->email,
+            'warehouse_location' => $staff->warehouse_location,
         ];
     }
 }
