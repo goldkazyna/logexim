@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
@@ -102,6 +103,23 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Вы вышли из аккаунта']);
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+
+        DB::transaction(function () use ($user) {
+            // Invalidate all access tokens so the old token stops working.
+            $user->tokens()->delete();
+            // Remove account-specific personal data. Invoices are intentionally
+            // kept as business/delivery records (they have no FK to users).
+            $user->recipientTemplates()->delete();
+            // Delete the account row itself.
+            $user->delete();
+        });
+
+        return response()->json(['message' => 'Аккаунт удалён']);
     }
 
     public function profile(Request $request)

@@ -20,6 +20,7 @@ Route::get('/cities', [CityController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/profile', [AuthController::class, 'profile']);
+    Route::delete('/auth/account', [AuthController::class, 'deleteAccount']);
 
     // Staff
     Route::post('/staff/logout', [StaffAuthController::class, 'logout']);
