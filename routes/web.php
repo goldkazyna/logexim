@@ -6,6 +6,9 @@ use App\Http\Controllers\AjaxController;
 
 Route::get('/', [HomeController::class, 'index']);
 
+// Privacy policy (App Store requirement) — must be before the /{alias} catch-all
+Route::view('/privacy', 'privacy');
+
 // AJAX routes
 Route::post('/ajax/searchCityDelivery', [AjaxController::class, 'searchCityDelivery']);
 Route::post('/ajax/calcDeliveryCar', [AjaxController::class, 'calcDeliveryCar']);
