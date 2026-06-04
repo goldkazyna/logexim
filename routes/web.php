@@ -8,6 +8,8 @@ Route::get('/', [HomeController::class, 'index']);
 
 // Privacy policy (App Store requirement) — must be before the /{alias} catch-all
 Route::view('/privacy', 'privacy');
+// Account deletion instructions (Google Play Data Safety requirement)
+Route::view('/delete-account', 'delete-account');
 
 // AJAX routes
 Route::post('/ajax/searchCityDelivery', [AjaxController::class, 'searchCityDelivery']);
