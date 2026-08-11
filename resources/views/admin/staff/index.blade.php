@@ -30,12 +30,7 @@
                     <td>{{ $s->full_name }}</td>
                     <td>{{ $s->login }}</td>
                     <td>
-                        @switch($s->role)
-                            @case('dispatcher') Диспетчер @break
-                            @case('courier') Курьер @break
-                            @case('warehouse') Кладовщик @break
-                            @default {{ $s->role }}
-                        @endswitch
+                        {{ $s->roleLabel() }}
                     </td>
                     <td>{{ $s->phone }}</td>
                     <td>{{ $s->email }}</td>

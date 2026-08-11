@@ -73,11 +73,9 @@
                 <li><a href="/admin/staff"><i class="fas fa-user-tie"></i> Сотрудники</a></li>
             @endif
             @php
-                $newInvoicesQuery = \App\Models\Invoice::where('status', 0);
-                if (session('role') === 'courier') {
-                    $newInvoicesQuery->where('courier_id', session('staff_id'));
-                }
-                $newInvoicesCount = $newInvoicesQuery->count();
+                $newInvoicesCount = \App\Models\Invoice::where('status', 0)
+                    ->visibleToStaff(session('role'), (int) session('staff_id'))
+                    ->count();
             @endphp
             <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Накладные <span id="invoice-badge" style="background:#D0171C;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:5px;{{ $newInvoicesCount > 0 ? '' : 'display:none' }}">{{ $newInvoicesCount }}</span></a></li>
             @if($role === 'admin')
@@ -100,12 +98,8 @@
                     $role = session('role');
                     if ($role === 'admin') {
                         $who = 'Администратор';
-                    } elseif ($role === 'dispatcher') {
-                        $who = session('full_name') . ' (диспетчер)';
-                    } elseif ($role === 'courier') {
-                        $who = session('full_name') . ' (курьер)';
-                    } elseif ($role === 'warehouse') {
-                        $who = session('full_name') . ' (кладовщик)';
+                    } elseif (isset(\App\Models\Staff::ROLE_LABELS[$role])) {
+                        $who = session('full_name') . ' (' . mb_strtolower(\App\Models\Staff::ROLE_LABELS[$role]) . ')';
                     } else {
                         $who = '';
                     }
@@ -128,11 +122,8 @@
 <script>
 (function(){
     @php
-        $lastIdQuery = \App\Models\Invoice::query();
-        if (session('role') === 'courier') {
-            $lastIdQuery->where('courier_id', session('staff_id'));
-        }
-        $initialLastId = $lastIdQuery->max('id') ?: 0;
+        $initialLastId = \App\Models\Invoice::visibleToStaff(session('role'), (int) session('staff_id'))
+            ->max('id') ?: 0;
     @endphp
     var lastId = {{ $initialLastId }};
     setInterval(function(){

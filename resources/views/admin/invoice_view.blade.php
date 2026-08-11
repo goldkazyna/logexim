@@ -50,19 +50,36 @@
             @endif
         </div></div>
         @if($canEdit)
+        @php
+            // Назначить можно и курьера, и агента — разница только в том, кто идёт первым.
+            $pickupGroups   = ['Курьеры' => $couriers, 'Агенты' => $agents];
+            $receiveGroups  = ['Агенты' => $agents, 'Курьеры' => $couriers];
+        @endphp
         <div class="inv-row"><div class="label">Курьер (отправка):</div><div class="value">
             <select name="courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
                 <option value="">— не назначен —</option>
-                @foreach($couriers as $c)
-                    <option value="{{ $c->id }}" @if($invoice->courier_id == $c->id) selected @endif>{{ $c->full_name }}@if(!$c->active) (отключен)@endif</option>
+                @foreach($pickupGroups as $groupLabel => $group)
+                    @if($group->isNotEmpty())
+                    <optgroup label="{{ $groupLabel }}">
+                        @foreach($group as $c)
+                            <option value="{{ $c->id }}" @if($invoice->courier_id == $c->id) selected @endif>{{ $c->full_name }}@if(!$c->active) (отключен)@endif</option>
+                        @endforeach
+                    </optgroup>
+                    @endif
                 @endforeach
             </select>
         </div></div>
         <div class="inv-row"><div class="label">Курьер (приём в пункте):</div><div class="value">
             <select name="receiving_courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
                 <option value="">— не назначен —</option>
-                @foreach($receivingCouriers as $c)
-                    <option value="{{ $c->id }}" @if($invoice->receiving_courier_id == $c->id) selected @endif>{{ $c->full_name }}@if(!$c->active) (отключен)@endif</option>
+                @foreach($receiveGroups as $groupLabel => $group)
+                    @if($group->isNotEmpty())
+                    <optgroup label="{{ $groupLabel }}">
+                        @foreach($group as $c)
+                            <option value="{{ $c->id }}" @if($invoice->receiving_courier_id == $c->id) selected @endif>{{ $c->full_name }}@if(!$c->active) (отключен)@endif</option>
+                        @endforeach
+                    </optgroup>
+                    @endif
                 @endforeach
             </select>
         </div></div>
@@ -172,12 +189,11 @@
                     <div style="font-size:12px;color:#666;margin-top:2px">
                         @php
                             $actor = $ev->actor_name ?: ($ev->actor_role ?: '—');
-                            $roleRu = [
-                                'admin' => 'админ',
-                                'dispatcher' => 'диспетчер',
-                                'courier' => 'курьер',
-                                'warehouse' => 'кладовщик',
-                            ][$ev->actor_role] ?? null;
+                            $roleRu = $ev->actor_role === 'admin'
+                                ? 'админ'
+                                : (isset(\App\Models\Staff::ROLE_LABELS[$ev->actor_role])
+                                    ? mb_strtolower(\App\Models\Staff::ROLE_LABELS[$ev->actor_role])
+                                    : null);
                         @endphp
                         {{ $actor }}@if($roleRu) ({{ $roleRu }})@endif
                         @if($ev->from_detail_status !== null && $ev->to_detail_status !== null)

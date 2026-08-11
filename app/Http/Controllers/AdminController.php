@@ -113,24 +113,21 @@ class AdminController extends Controller
 
     public function checkNewInvoices(Request $request)
     {
-        if (!in_array(session('role'), ['admin', 'dispatcher', 'courier'], true)) {
+        if (!in_array(session('role'), array_merge(['admin', 'dispatcher'], Staff::COURIER_ROLES), true)) {
             return response()->json(['error' => 'unauthorized'], 401);
         }
         $lastId = $request->input('last_id', 0);
-        $isCourier = session('role') === 'courier';
-        $courierId = (int) session('staff_id');
+        $role = session('role');
+        $staffId = (int) session('staff_id');
 
-        $countQuery = Invoice::where('status', 0);
-        if ($isCourier) $countQuery->where('courier_id', $courierId);
-        $count = $countQuery->count();
+        $count = Invoice::where('status', 0)->visibleToStaff($role, $staffId)->count();
 
-        $newQuery = Invoice::where('id', '>', $lastId);
-        if ($isCourier) $newQuery->where('courier_id', $courierId);
-        $newInvoices = $newQuery->orderBy('id', 'desc')->get();
+        $newInvoices = Invoice::where('id', '>', $lastId)
+            ->visibleToStaff($role, $staffId)
+            ->orderBy('id', 'desc')
+            ->get();
 
-        $maxQuery = Invoice::query();
-        if ($isCourier) $maxQuery->where('courier_id', $courierId);
-        $maxId = $maxQuery->max('id') ?: 0;
+        $maxId = Invoice::visibleToStaff($role, $staffId)->max('id') ?: 0;
         $showCourier = in_array(session('role'), ['admin', 'dispatcher'], true);
         if ($showCourier) {
             $newInvoices->load('courier');
@@ -163,11 +160,10 @@ class AdminController extends Controller
     // === INVOICES ===
     public function invoices(Request $request)
     {
-        if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
-        $query = Invoice::with(['user', 'courier'])->orderBy('id', 'desc');
-        if (session('role') === 'courier') {
-            $query->where('courier_id', session('staff_id'));
-        }
+        if ($r = $this->checkAuth(array_merge(['admin', 'dispatcher'], Staff::COURIER_ROLES))) return $r;
+        $query = Invoice::with(['user', 'courier'])
+            ->visibleToStaff(session('role'), (int) session('staff_id'))
+            ->orderBy('id', 'desc');
         if ($request->has('search') && $request->input('search') !== '') {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -195,14 +191,21 @@ class AdminController extends Controller
 
     public function viewInvoice($id)
     {
-        if ($r = $this->checkAuth(['admin', 'dispatcher', 'courier'])) return $r;
+        if ($r = $this->checkAuth(array_merge(['admin', 'dispatcher'], Staff::COURIER_ROLES))) return $r;
         $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier', 'events'])->findOrFail($id);
-        if (session('role') === 'courier' && (int) $invoice->courier_id !== (int) session('staff_id')) {
-            return redirect('/admin/invoices');
+
+        // Курьер и агент открывают только свои накладные — по любой из двух сторон.
+        if (Staff::isCourierRoleName(session('role'))) {
+            $staffId = (int) session('staff_id');
+            if ((int) $invoice->courier_id !== $staffId && (int) $invoice->receiving_courier_id !== $staffId) {
+                return redirect('/admin/invoices');
+            }
         }
+
+        // Списки для двух выпадающих полей: в каждом обе группы, разный порядок.
         $couriers = Staff::where('role', 'courier')->orderBy('full_name')->get();
-        $receivingCouriers = $couriers; // тот же список
-        return view('admin.invoice_view', compact('invoice', 'couriers', 'receivingCouriers'));
+        $agents   = Staff::where('role', 'agent')->orderBy('full_name')->get();
+        return view('admin.invoice_view', compact('invoice', 'couriers', 'agents'));
     }
 
     public function updateInvoiceStatus(Request $request, $id)

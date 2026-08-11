@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\InvoiceEvent;
+use App\Models\Staff;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -26,7 +27,7 @@ class StaffInvoiceController extends Controller
         $staff = $request->user();
         $query = Invoice::with(['courier', 'warehouse', 'receivingCourier'])->orderBy('id', 'desc');
 
-        if ($staff->role === 'courier') {
+        if ($staff->isCourierRole()) {
             $query->where(function ($q) use ($staff) {
                 $q->where('courier_id', $staff->id)
                   ->orWhere('receiving_courier_id', $staff->id);
@@ -53,7 +54,7 @@ class StaffInvoiceController extends Controller
         $staff = $request->user();
         $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier', 'events'])->findOrFail($id);
 
-        if ($staff->role === 'courier' && !$this->courierCanAccess($invoice, $staff)) {
+        if ($staff->isCourierRole() && !$this->courierCanAccess($invoice, $staff)) {
             return response()->json(['message' => 'Нет доступа'], 403);
         }
 
@@ -69,7 +70,7 @@ class StaffInvoiceController extends Controller
         if (!$invoice) {
             return response()->json(['message' => 'Накладная не найдена'], 404);
         }
-        if ($staff->role === 'courier' && !$this->courierCanAccess($invoice, $staff)) {
+        if ($staff->isCourierRole() && !$this->courierCanAccess($invoice, $staff)) {
             return response()->json(['message' => 'Накладная не назначена вам'], 403);
         }
 
@@ -88,8 +89,8 @@ class StaffInvoiceController extends Controller
         $staff = $request->user();
         $invoice = Invoice::findOrFail($id);
 
-        if ($staff->role !== 'courier') {
-            return response()->json(['message' => 'Действие доступно только курьеру'], 403);
+        if (!$staff->isCourierRole()) {
+            return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
         if ((int) $invoice->courier_id !== (int) $staff->id) {
             return response()->json(['message' => 'Накладная не назначена вам'], 403);
@@ -209,8 +210,8 @@ class StaffInvoiceController extends Controller
         $staff = $request->user();
         $invoice = Invoice::findOrFail($id);
 
-        if ($staff->role !== 'courier') {
-            return response()->json(['message' => 'Действие доступно только курьеру'], 403);
+        if (!$staff->isCourierRole()) {
+            return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
         if ((int) $invoice->receiving_courier_id !== (int) $staff->id) {
             return response()->json(['message' => 'Вы не назначены принимающим курьером этой накладной'], 403);
@@ -241,8 +242,8 @@ class StaffInvoiceController extends Controller
         $staff = $request->user();
         $invoice = Invoice::findOrFail($id);
 
-        if ($staff->role !== 'courier') {
-            return response()->json(['message' => 'Действие доступно только курьеру'], 403);
+        if (!$staff->isCourierRole()) {
+            return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
         if ((int) $invoice->receiving_courier_id !== (int) $staff->id) {
             return response()->json(['message' => 'Вы не назначены принимающим курьером этой накладной'], 403);

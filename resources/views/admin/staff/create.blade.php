@@ -37,9 +37,9 @@ function toggleWarehouseField() {
             <div class="form-group">
                 <label>Роль *</label>
                 <select name="role" id="role-select" class="form-control" required onchange="toggleWarehouseField()">
-                    <option value="dispatcher" {{ old('role') === 'dispatcher' ? 'selected' : '' }}>Диспетчер</option>
-                    <option value="courier" {{ old('role') === 'courier' ? 'selected' : '' }}>Курьер</option>
-                    <option value="warehouse" {{ old('role') === 'warehouse' ? 'selected' : '' }}>Кладовщик</option>
+                    @foreach(\App\Models\Staff::ROLE_LABELS as $value => $label)
+                        <option value="{{ $value }}" {{ old('role') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="form-group" id="warehouse-location-row" style="{{ old('role') === 'warehouse' ? '' : 'display:none' }}">
