@@ -39,6 +39,7 @@ Route::get('/cabinet/invoices', [CabinetController::class, 'invoices']);
 Route::get('/cabinet/create_invoice', [CabinetController::class, 'createInvoice']);
 Route::post('/cabinet/save_invoices', [CabinetController::class, 'saveInvoice']);
 Route::get('/cabinet/view_invoice/{id}', [CabinetController::class, 'viewInvoice']);
+Route::post('/cabinet/update_invoice_date/{id}', [CabinetController::class, 'updateInvoiceDate']);
 Route::get('/cabinet/print_invoice/{id}', [CabinetController::class, 'printInvoice']);
 Route::get('/cabinet/print_invoices', [CabinetController::class, 'printInvoices']);
 Route::get('/cabinet/recipient_templates', [CabinetController::class, 'recipientTemplates']);

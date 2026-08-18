@@ -7,6 +7,13 @@
 h2 { background-color: #D0171C; color: #ffffff !important; text-align: center; border-radius: 10px; padding:5px; margin-bottom:10px; }
 .invoice-data { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 20px; }
 .invoice-data span { display: inline-block; width: 200px; color: #555; font-weight: normal; }
+.date-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.date-form input[type="date"] { border: 1px solid #ccc; border-radius: 8px; padding: 6px 10px;
+                                font-size: 15px; font-weight: bold; color: #333; }
+.date-save { padding: 6px 16px; font-size: 14px; border: none; cursor: pointer; }
+.date-msg { border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 14px; }
+.date-ok  { background: #e8f7ed; color: #1c7a3e; }
+.date-err { background: #fdecea; color: #a21216; }
 </style>
 @endpush
 @section('content')
@@ -19,10 +26,19 @@ h2 { background-color: #D0171C; color: #ffffff !important; text-align: center; b
             </div>
 
             <div class="mt-4">
-                <!-- Дата создания -->
-                <div class="invoice-data">
-                    <span>Дата:</span> {{ \Carbon\Carbon::parse($invoice->date)->format('d.m.Y') }}
-                </div>
+                <!-- Дата создания — клиент может её поправить -->
+                @if(session('success'))
+                    <div class="date-msg date-ok">{{ session('success') }}</div>
+                @endif
+                @if(session('error'))
+                    <div class="date-msg date-err">{{ session('error') }}</div>
+                @endif
+                <form action="/cabinet/update_invoice_date/{{ $invoice->id }}" method="POST" class="invoice-data date-form">
+                    @csrf
+                    <span>Дата:</span>
+                    <input type="date" name="date" value="{{ $invoice->date }}" required>
+                    <button type="submit" class="common_btn date-save">Сохранить</button>
+                </form>
 
                 <!-- Отправитель -->
                 <h2>Отправитель</h2>

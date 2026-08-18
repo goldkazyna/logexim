@@ -195,11 +195,13 @@
                     <div style="font-size:12px;color:#666;margin-top:2px">
                         @php
                             $actor = $ev->actor_name ?: ($ev->actor_role ?: '—');
-                            $roleRu = $ev->actor_role === 'admin'
-                                ? 'админ'
-                                : (isset(\App\Models\Staff::ROLE_LABELS[$ev->actor_role])
-                                    ? mb_strtolower(\App\Models\Staff::ROLE_LABELS[$ev->actor_role])
-                                    : null);
+                            $roleRu = match (true) {
+                                $ev->actor_role === 'admin' => 'админ',
+                                $ev->actor_role === 'client' => 'клиент',
+                                isset(\App\Models\Staff::ROLE_LABELS[$ev->actor_role])
+                                    => mb_strtolower(\App\Models\Staff::ROLE_LABELS[$ev->actor_role]),
+                                default => null,
+                            };
                         @endphp
                         {{ $actor }}@if($roleRu) ({{ $roleRu }})@endif
                         @if($ev->from_detail_status !== null && $ev->to_detail_status !== null)

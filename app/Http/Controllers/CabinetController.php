@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Invoice;
+use App\Models\InvoiceEvent;
 use App\Models\RecipientTemplate;
 use App\Models\DescriptionTemplate;
 use Illuminate\Http\Request;
@@ -187,14 +188,50 @@ class CabinetController extends Controller
     public function viewInvoice($id)
     {
         if ($r = $this->checkAuth()) return $r;
-        $invoice = Invoice::findOrFail($id);
+        $user = $this->getUser();
+        $invoice = Invoice::where('user_id', $user->id)->findOrFail($id);
         return view('cabinet.invoices.view', compact('invoice'));
+    }
+
+    /** Клиент может поправить дату своей накладной. */
+    public function updateInvoiceDate(Request $request, $id)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        $user = $this->getUser();
+        $invoice = Invoice::where('user_id', $user->id)->findOrFail($id);
+
+        $date = $request->input('date');
+        if ($date === null || $date === '') {
+            return redirect('/cabinet/view_invoice/' . $id)
+                ->with('error', 'Дата не может быть пустой');
+        }
+
+        $oldDate = (string) $invoice->date;
+        if ($oldDate === $date) {
+            return redirect('/cabinet/view_invoice/' . $id);
+        }
+
+        $invoice->update(['date' => $date]);
+
+        InvoiceEvent::create([
+            'invoice_id' => $invoice->id,
+            'event' => 'date_changed',
+            'actor_type' => 'client',
+            'actor_id' => $user->id,
+            'actor_role' => 'client',
+            'actor_name' => $user->company_name ?: $user->bin,
+            'meta' => ['from_date' => $oldDate, 'to_date' => $date],
+            'created_at' => now(),
+        ]);
+
+        return redirect('/cabinet/view_invoice/' . $id)->with('success', 'Дата обновлена');
     }
 
     public function printInvoice($id)
     {
         if ($r = $this->checkAuth()) return $r;
-        $invoice = Invoice::findOrFail($id);
+        $user = $this->getUser();
+        $invoice = Invoice::where('user_id', $user->id)->findOrFail($id);
         $invoice->update(['printed' => 1]);
         return view('cabinet.invoices.print', compact('invoice'));
     }
