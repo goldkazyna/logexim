@@ -36,6 +36,7 @@ class InvoiceEvent extends Model
         'delivery' => 'Доставлено получателю',
         'status_changed' => 'Изменён основной статус',
         'detail_changed' => 'Изменён этап доставки',
+        'date_changed' => 'Изменена дата накладной',
     ];
 
     public function label(): string

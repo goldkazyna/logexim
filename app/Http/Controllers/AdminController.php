@@ -232,12 +232,20 @@ class AdminController extends Controller
         $oldDetail = (int) $invoice->detail_status;
         $oldCourierId = $invoice->courier_id ? (int) $invoice->courier_id : null;
 
+        $oldDate = $invoice->date;
+
         $data = [
             'status' => $request->input('status'),
             'volume_weight' => $request->input('volume_weight'),
             'plan_date' => $request->input('plan_date'),
             'fact_date' => $request->input('fact_date'),
         ];
+
+        // Дату накладной править можно, стирать нельзя — колонка обязательная.
+        $date = $request->input('date');
+        if ($date !== null && $date !== '') {
+            $data['date'] = $date;
+        }
         if (session('role') === 'admin') {
             $data['payment'] = $request->input('payment');
         }
@@ -287,6 +295,12 @@ class AdminController extends Controller
             $this->logAdminEvent($invoice, 'status_changed', null, null, [
                 'from_status' => $oldStatus,
                 'to_status' => (int) $data['status'],
+            ]);
+        }
+        if (isset($data['date']) && (string) $oldDate !== (string) $data['date']) {
+            $this->logAdminEvent($invoice, 'date_changed', null, null, [
+                'from_date' => (string) $oldDate,
+                'to_date' => (string) $data['date'],
             ]);
         }
 

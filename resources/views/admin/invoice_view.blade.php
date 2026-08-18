@@ -24,7 +24,13 @@
 <div class="card">
     <div class="card-header">Накладная № {{ $invoice->invoice_number }}</div>
     <div class="card-body">
-        <div class="inv-row"><div class="label">Дата:</div><div class="value">{{ \Carbon\Carbon::parse($invoice->date)->format('d.m.Y') }}</div></div>
+        <div class="inv-row"><div class="label">Дата:</div><div class="value">
+            @if($canEdit)
+            <input type="date" name="date" class="inv-edit-input" value="{{ $invoice->date }}" form="edit-invoice-form" style="width:180px">
+            @else
+            {{ \Carbon\Carbon::parse($invoice->date)->format('d.m.Y') }}
+            @endif
+        </div></div>
         <div class="inv-row"><div class="label">Статус:</div><div class="value">
             @if($canEdit)
             <select name="status" class="inv-edit-input" form="edit-invoice-form" style="width:200px">
@@ -210,6 +216,9 @@
                                 $statuses = [0=>'Заявка создана',1=>'Принята в работу',2=>'Отправлено',3=>'Исполнена',4=>'Отменена'];
                             @endphp
                             · статус: {{ $statuses[$ev->meta['from_status']] ?? '?' }} → {{ $statuses[$ev->meta['to_status']] ?? '?' }}
+                        @endif
+                        @if(isset($ev->meta['from_date']) && isset($ev->meta['to_date']))
+                            · дата: {{ \Carbon\Carbon::parse($ev->meta['from_date'])->format('d.m.Y') }} → {{ \Carbon\Carbon::parse($ev->meta['to_date'])->format('d.m.Y') }}
                         @endif
                     </div>
                 </div>
