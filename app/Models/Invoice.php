@@ -24,6 +24,106 @@ class Invoice extends Model
         return self::DETAIL_STATUSES[$this->detail_status] ?? '—';
     }
 
+    /** Административный статус — то, что видно в колонке «Статус» в админке. */
+    public const STATUSES = [
+        0 => 'Заявка создана',
+        1 => 'Принята в работу',
+        2 => 'Отправлено',
+        3 => 'Исполнена',
+        4 => 'Отменена',
+    ];
+
+    /** Цвета бейджей — те же, что в админке, чтобы статус читался одинаково. */
+    public const STATUS_COLORS = [
+        0 => '#00056d',
+        1 => '#ffcc00',
+        2 => '#00aaff',
+        3 => '#28a745',
+        4 => '#dc3545',
+    ];
+
+    private const STATUS_CANCELLED = 4;
+
+    /**
+     * Данные для публичного отслеживания накладной по номеру.
+     *
+     * Основа — административный статус: detail_status ведётся только для
+     * накладных, прошедших через мобильное приложение, у остальных он равен
+     * нулю даже когда накладная давно исполнена. Детальная цепочка поэтому
+     * показывается только когда в ней есть смысл.
+     *
+     * Персональные данные (ФИО, телефоны, адреса, описание груза) сюда не
+     * попадают: номера последовательные, и перебор не должен превращаться
+     * в выгрузку базы контрагентов.
+     */
+    public function publicTracking(): array
+    {
+        $status = (int) $this->status;
+        $detail = (int) $this->detail_status;
+        $cancelled = $status === self::STATUS_CANCELLED;
+        $known = array_key_exists($status, self::STATUSES);
+
+        return [
+            'number' => (string) $this->invoice_number,
+            'status' => $status,
+            'status_label' => self::STATUSES[$status] ?? '—',
+            'status_color' => self::STATUS_COLORS[$status] ?? '#999999',
+            'cancelled' => $cancelled,
+            'from' => (string) $this->sender_city,
+            'to' => (string) $this->recipient_city,
+            'quantity' => (string) ($this->quantity ?? ''),
+            'weight' => (string) ($this->weight ?? ''),
+            'created_at' => $this->formatDate($this->created_at ?? $this->date),
+            'plan_date' => $this->formatDate($this->plan_date),
+            'fact_date' => $this->formatDate($this->fact_date),
+            'delivered_at' => $this->formatDate($this->delivered_at),
+            'steps' => $cancelled || ! $known
+                ? []
+                : $this->buildSteps(array_slice(self::STATUSES, 0, 4, true), $status),
+            'detail_steps' => $cancelled || $detail <= 0
+                ? []
+                : $this->buildSteps(self::DETAIL_STATUSES, $detail),
+        ];
+    }
+
+    /**
+     * Раскрашивает цепочку этапов: пройденные — done, текущий — current,
+     * будущие — pending. На последнем этапе цепочка закрыта целиком.
+     *
+     * @param  array<int, string>  $titles
+     * @return list<array{title: string, state: string}>
+     */
+    private function buildSteps(array $titles, int $current): array
+    {
+        $last = array_key_last($titles);
+        $steps = [];
+
+        foreach ($titles as $index => $title) {
+            $state = match (true) {
+                $current >= $last => 'done',
+                $index < $current => 'done',
+                $index === $current => 'current',
+                default => 'pending',
+            };
+            $steps[] = ['title' => $title, 'state' => $state];
+        }
+
+        return $steps;
+    }
+
+    private function formatDate($value): string
+    {
+        if (empty($value)) {
+            return '';
+        }
+
+        try {
+            return \Carbon\Carbon::parse($value)->format('d.m.Y');
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
     /**
      * Накладные, доступные сотруднику в панели управления.
      * Администратор и диспетчер видят все; курьер и агент — только свои,

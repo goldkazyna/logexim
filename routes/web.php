@@ -16,7 +16,7 @@ Route::post('/ajax/searchCityDelivery', [AjaxController::class, 'searchCityDeliv
 Route::post('/ajax/calcDeliveryCar', [AjaxController::class, 'calcDeliveryCar']);
 Route::post('/ajax/calcDeliveryAir', [AjaxController::class, 'calcDeliveryAir']);
 Route::post('/ajax/calcDeliveryZd', [AjaxController::class, 'calcDeliveryZd']);
-Route::post('/ajax/searchTrack', [AjaxController::class, 'searchTrack']);
+Route::post('/ajax/trackInvoice', [AjaxController::class, 'trackInvoice']);
 Route::post('/ajax/send_from', [AjaxController::class, 'sendFrom']);
 
 // Cabinet

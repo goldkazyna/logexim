@@ -6,7 +6,7 @@ use App\Models\Avia;
 use App\Models\Avto;
 use App\Models\Zh;
 use App\Models\CityDelivery;
-use App\Models\TmOrder;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 
 class AjaxController extends Controller
@@ -42,11 +42,29 @@ class AjaxController extends Controller
         return response()->json($route ? ['price' => $route->price, 'time' => $route->time] : ['price' => null]);
     }
 
-    public function searchTrack(Request $request)
+    /**
+     * Публичное отслеживание накладной по её номеру («Найти посылку» на сайте).
+     *
+     * Отдаём только статус и обезличенные детали — см. Invoice::publicTracking().
+     */
+    public function trackInvoice(Request $request)
     {
-        $track = $request->input('search_track', '');
-        $order = TmOrder::where('track_number', $track)->first();
-        return response()->json($order ?: ['id' => null]);
+        $number = trim((string) $request->input('invoice_number', ''));
+
+        if ($number === '' || ! ctype_digit($number)) {
+            return response()->json(['found' => false]);
+        }
+
+        $invoice = Invoice::where('invoice_number', $number)->first();
+
+        if (! $invoice) {
+            return response()->json(['found' => false]);
+        }
+
+        return response()->json([
+            'found' => true,
+            'invoice' => $invoice->publicTracking(),
+        ]);
     }
 
     public function sendFrom(Request $request)
