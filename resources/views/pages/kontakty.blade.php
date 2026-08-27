@@ -38,43 +38,7 @@ body.main-page .header { position: relative !important; }
                     <b>Адрес:</b> Республика Казахстан, Алматы, Ул. Коммунальная 3А<br />
                     <b>Адрес склада</b> трасса Алматы-Усть-Каменогорск, ул, Аксуат 110<br />
                     <b>Телефон:</b> +7 (707) 230 15 65, +7 (727) 351 73 41<br />
-                    <b>E-mail:</b> sales@logeximexpress.kz
-                </p>
-            </div>
-            <div class="col-lg-3 col-xs-12" style="margin-bottom: 30px;">
-                <p style="font-size: 16px; font-weight: bold;">Караганда</p>
-                <hr />
-                <br />
-                <p style="font-size: 14px; line-height: 1.5;">
-                    <b>Адрес склада:</b> г. Караганда ул. Мельничная 4<br />
-                    <b>Телефон:</b> +7 (701) 704 96 96<br />
-                </p>
-            </div>
-            <div class="col-lg-3 col-xs-12" style="margin-bottom: 30px;">
-                <p style="font-size: 16px; font-weight: bold;">Астана</p>
-                <hr />
-                <br />
-                <p style="font-size: 14px; line-height: 1.5;">
-                    <b>Адрес склада:</b> ул. Кобды 4<br />
-                    <b>Телефон:</b> +7 (701) 524 62 17<br />
-                </p>
-            </div>
-            <div class="col-lg-3 col-xs-12" style="margin-bottom: 30px;">
-                <p style="font-size: 16px; font-weight: bold;">Павлодар</p>
-                <hr />
-                <br />
-                <p style="font-size: 14px; line-height: 1.5;">
-                    <b>Адрес склада:</b> ул Архангельская 4 А<br />
-                    <b>Телефон:</b> +7 (701) 675 71 31<br />
-                </p>
-            </div>
-            <div class="col-lg-3 col-xs-12" style="margin-bottom: 30px;">
-                <p style="font-size: 16px; font-weight: bold;">Шымкент</p>
-                <hr />
-                <br />
-                <p style="font-size: 14px; line-height: 1.5;">
-                    <b>Адрес склада:</b> мкр Самал 3 ул Юсупова 117<br />
-                    <b>Телефон:</b> +7 (707) 232 80 61<br />
+                    <b>E-mail:</b> sale@logexim.kz
                 </p>
             </div>
         </div>

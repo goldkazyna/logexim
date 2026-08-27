@@ -80,7 +80,7 @@
                     </div>
                     <div class="header-top__phones">
                         <a href="tel:+77072301565"><i class="icon-mobile-phone"></i>+7 (707) 230 15 65</a>
-                        <a href="tel:+77273209669"><i class="icon-old-phone"></i>+7 (727) 320 96 69</a>
+                        <a href="tel:+77273517341"><i class="icon-old-phone"></i>+7 (727) 351 73 41</a>
                     </div>
                     <div class="header-top__action">
                         <a href="#" class="btn btn_anim" data-fancybox data-src="#modalRecall">
@@ -196,7 +196,7 @@
                     <li><a href="#"><i class="icon-telegram"></i>Telegram</a></li>
                     <li><a href="https://wa.me/77072301565?text=%D0%94%D0%BE%D0%B1%D1%80%D1%8B%D0%B9%20%D0%B4%D0%B5%D0%BD%D1%8C%2C%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D1%83%D0%B5%D1%82%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8F"><i class="icon-whatsapp"></i>WhatsApp</a></li>
                     <li><a href="/chasto-zadavaemye-voprosy"><i class="icon-info"></i>Частые вопросы</a></li>
-                    <li><a href="mailto:sales@logeximexpress.kz"><i class="icon-email"></i>sales@logeximexpress.kz</a></li>
+                    <li><a href="mailto:sale@logexim.kz"><i class="icon-email"></i>sale@logexim.kz</a></li>
                 </ul>
                 <div class="footer__content">
                     <div class="footer__address">
@@ -211,24 +211,12 @@
             </div>
             <div class="footer__bottom">
                 <div class="footer__copyright">Copyright &copy; {{ date('Y') }} <a href="https://mdlab.kz/" target="_blank">&laquo;Modern Design Lab&raquo;</a>. Все права защищены.</div>
-                <div class="footer__docs">
-                    <a href="/upload/dogovor.pdf">Скачать стандартный договор LogExim Express</a>
-                    <a href="/upload/avia.pdf">Авиа тариф КЗ</a>
-                    <a href="/upload/astana.pdf">Астана - тарифы-общие</a>
-                    <a href="/upload/kp.pdf">КП Экспресс</a>
-                </div>
             </div>
         </div>
     </footer>
 </div>
 
 <style>
-    .footer__docs { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-start; align-items: flex-start; }
-    .footer__docs a { display: inline-block; margin: 0; font-size: 16px; color: #1D1D1D; font-weight: 500; border-bottom: 1px solid rgba(208, 23, 28, 0.2); padding: 4px 0; position: relative; z-index: 1; transition: all 250ms; margin-right: 34px; white-space: nowrap; }
-    .footer__docs a::before { content: ""; display: block; position: absolute; bottom: 0; left: 0; right: 0; height: 0; z-index: -1; background: rgba(208, 23, 28, 0.1); transition: height 250ms; border-radius: 2px; }
-    .footer__docs a:hover { border-color: rgba(208, 23, 28, 0.1); }
-    .footer__docs a:hover:before { height: 100%; }
-    @media (max-width: 1280px) { .footer__docs a { font-size: 14px; } }
     .footer__contacts { display: grid; grid-template-columns: 35% 1fr; gap: 40px; padding: 40px 0; border-bottom: 1px solid #e9e9e9; }
     @media (max-width: 1100px) { .footer__contacts { padding: 30px 0; grid-template-columns: 1fr auto; } }
     @media (max-width: 680px) { .footer__contacts { padding: 20px 0; grid-template-columns: 1fr; gap: 20px; } }

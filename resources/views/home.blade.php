@@ -305,7 +305,7 @@
                     <p class="contacts__desc">Адрес склада: трасса Алматы-Усть-Каменогорск, ул, Аксуат 110</p>
                     <div class="contacts__action">
                         <a href="tel:+77072301565" class="btn"><i class="icon-mobile-phone"></i>+7 (707) 230 15 65</a>
-                        <a href="tel:+77273209669" class="btn"><i class="icon-mobile-phone"></i>+7 (727) 320 96 69</a>
+                        <a href="tel:+77273517341" class="btn"><i class="icon-mobile-phone"></i>+7 (727) 351 73 41</a>
                         <a href="mailto:info@logeximexpress.kz" class="btn"><i class="icon-email"></i>info@logeximexpress.kz</a>
                     </div>
                 </div>
