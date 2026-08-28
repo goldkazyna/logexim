@@ -92,7 +92,7 @@ h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; bo
                     </div>
                     <div class="mb-4">
                         <label for="recipient-country" class="text-gray-800 font-bold text-base inline-block mb-2">Страна</label>
-                        <input type="text" id="recipient-country" name="recipient_country" class="form-input w-full md:w-1/2" placeholder="Введите страну получателя" required>
+                        <input type="text" id="recipient-country" name="recipient_country" class="form-input w-full md:w-1/2" value="Казахстан" placeholder="Введите страну получателя" required>
                     </div>
                     <div class="mb-4">
                         <label for="recipient-region" class="text-gray-800 font-bold text-base inline-block mb-2">Область</label>
@@ -253,7 +253,7 @@ $(document).ready(function() {
                     $('#recipient-phone').val(response.recipient_phone);
                     $('#recipient-address').val(response.address);
                     $('#recipient-city').val(response.city);
-                    $('#recipient-country').val(response.country);
+                    $('#recipient-country').val(response.country || 'Казахстан');
                     $('#recipient-region').val(response.region);
                     $('#recipient-district').val(response.district);
                     $('#template-modal').addClass('hidden');
