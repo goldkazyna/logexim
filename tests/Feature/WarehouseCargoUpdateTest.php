@@ -121,6 +121,22 @@ class WarehouseCargoUpdateTest extends TestCase
         $this->update($invoice, ['quantity' => 5, 'weight' => 41.5])->assertForbidden();
     }
 
+    /**
+     * На проде накладную часто переводят на этап «На складе» из админки —
+     * тогда warehouse_id остаётся пустым и склад её как бы ничей. Блокировать
+     * правку в этом случае нельзя: на боевых данных таких большинство.
+     */
+    public function test_warehouse_updates_stock_that_nobody_claimed(): void
+    {
+        $warehouse = $this->staff('warehouse');
+        $invoice = $this->invoice(['detail_status' => 3, 'warehouse_id' => null]);
+        Sanctum::actingAs($warehouse);
+
+        $this->update($invoice, ['quantity' => 5, 'weight' => 41.5])->assertOk();
+
+        $this->assertSame(5, (int) $invoice->refresh()->quantity);
+    }
+
     public function test_cargo_is_frozen_once_shipped(): void
     {
         $warehouse = $this->staff('warehouse');

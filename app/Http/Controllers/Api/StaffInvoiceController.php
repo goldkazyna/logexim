@@ -303,7 +303,13 @@ class StaffInvoiceController extends Controller
                     : 'Груз уже отправлен со склада — изменить вес и места нельзя',
             ], 422);
         }
-        if ($detail === 3 && (int) $invoice->warehouse_id !== (int) $staff->id) {
+        // Накладную нередко переводят на этап «На складе» из админки — тогда
+        // warehouse_id пуст и склад у неё ничей. Такую правит любой кладовщик;
+        // закрываем только чужую, принятую конкретным складом.
+        if ($detail === 3
+            && $invoice->warehouse_id !== null
+            && (int) $invoice->warehouse_id !== (int) $staff->id
+        ) {
             return response()->json([
                 'message' => 'Накладная принята другим кладовщиком',
             ], 403);
