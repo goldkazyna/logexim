@@ -61,7 +61,9 @@ class StaffAuthController extends Controller
             'id' => $staff->id,
             'login' => $staff->login,
             'full_name' => $staff->full_name,
-            'role' => $staff->role,
+            // role — основная роль, для сборок, выпущенных до многоролевости.
+            'role' => $staff->primaryRole() ?? $staff->role,
+            'roles' => $staff->roleNames(),
             'phone' => $staff->phone,
             'email' => $staff->email,
             'warehouse_location' => $staff->warehouse_location,

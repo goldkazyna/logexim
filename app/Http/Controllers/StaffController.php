@@ -38,7 +38,8 @@ class StaffController extends Controller
             'full_name' => 'required|string|max:255',
             'login'     => 'required|string|max:100|unique:staff,login',
             'password'  => 'required|string|min:4',
-            'role'      => ['required', Rule::in(array_keys(Staff::ROLE_LABELS))],
+            'roles'     => ['required', 'array', 'min:1'],
+            'roles.*'   => [Rule::in(array_keys(Staff::ROLE_LABELS))],
             'phone'     => 'nullable|string|max:50',
             'email'     => 'nullable|email|max:255',
             'note'      => 'nullable|string',
@@ -50,19 +51,41 @@ class StaffController extends Controller
             return back()->withErrors(['login' => 'Такой логин уже используется'])->withInput();
         }
 
+        $roles = self::normalizeRoles($data['roles']);
+
         Staff::create([
             'full_name' => $data['full_name'],
             'login'     => $data['login'],
             'password'  => sha1(md5($data['password'])),
-            'role'      => $data['role'],
+            // role — первая роль набора: на неё опирается код и сборки
+            // приложения, выпущенные до многоролевости.
+            'role'      => $roles[0],
+            'roles'     => $roles,
             'phone'     => $data['phone'] ?? null,
             'email'     => $data['email'] ?? null,
             'note'      => $data['note'] ?? null,
-            'warehouse_location' => $data['role'] === 'warehouse' ? ($data['warehouse_location'] ?? null) : null,
+            'warehouse_location' => in_array('warehouse', $roles, true)
+                ? ($data['warehouse_location'] ?? null)
+                : null,
             'active'    => $request->has('active') ? 1 : 0,
         ]);
 
         return redirect('/admin/staff')->with('success', 'Сотрудник добавлен');
+    }
+
+    /**
+     * Приводит набор ролей к порядку из ROLE_LABELS и убирает дубли, чтобы
+     * основная роль не зависела от порядка чекбоксов в форме.
+     *
+     * @param  array<int, string>  $roles
+     * @return list<string>
+     */
+    private static function normalizeRoles(array $roles): array
+    {
+        return array_values(array_filter(
+            array_keys(Staff::ROLE_LABELS),
+            fn ($role) => in_array($role, $roles, true),
+        ));
     }
 
     public function edit($id)
@@ -81,7 +104,8 @@ class StaffController extends Controller
             'full_name' => 'required|string|max:255',
             'login'     => ['required', 'string', 'max:100', Rule::unique('staff', 'login')->ignore($item->id)],
             'password'  => 'nullable|string|min:4',
-            'role'      => ['required', Rule::in(array_keys(Staff::ROLE_LABELS))],
+            'roles'     => ['required', 'array', 'min:1'],
+            'roles.*'   => [Rule::in(array_keys(Staff::ROLE_LABELS))],
             'phone'     => 'nullable|string|max:50',
             'email'     => 'nullable|email|max:255',
             'note'      => 'nullable|string',
@@ -93,14 +117,19 @@ class StaffController extends Controller
             return back()->withErrors(['login' => 'Такой логин уже используется'])->withInput();
         }
 
+        $roles = self::normalizeRoles($data['roles']);
+
         $update = [
             'full_name' => $data['full_name'],
             'login'     => $data['login'],
-            'role'      => $data['role'],
+            'role'      => $roles[0],
+            'roles'     => $roles,
             'phone'     => $data['phone'] ?? null,
             'email'     => $data['email'] ?? null,
             'note'      => $data['note'] ?? null,
-            'warehouse_location' => $data['role'] === 'warehouse' ? ($data['warehouse_location'] ?? null) : null,
+            'warehouse_location' => in_array('warehouse', $roles, true)
+                ? ($data['warehouse_location'] ?? null)
+                : null,
             'active'    => $request->has('active') ? 1 : 0,
         ];
 

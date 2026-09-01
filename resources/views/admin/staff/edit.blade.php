@@ -4,11 +4,18 @@
 
 @push('scripts')
 <script>
+// Локация склада нужна, только если среди отмеченных ролей есть «Кладовщик».
 function toggleWarehouseField() {
-    var role = document.getElementById('role-select').value;
-    document.getElementById('warehouse-location-row').style.display = role === 'warehouse' ? '' : 'none';
+    var checkbox = document.querySelector('input[name="roles[]"][value="warehouse"]');
+    document.getElementById('warehouse-location-row').style.display =
+        checkbox && checkbox.checked ? '' : 'none';
 }
 </script>
+<style>
+    .role-checks { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 4px 0; }
+    .role-checks label { display: inline-flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer; margin: 0; }
+</style>
+
 @endpush
 
 @section('content')
@@ -35,14 +42,20 @@ function toggleWarehouseField() {
                 <input type="text" name="password" class="form-control" value="">
             </div>
             <div class="form-group">
-                <label>Роль *</label>
-                <select name="role" id="role-select" class="form-control" required onchange="toggleWarehouseField()">
+                <label>Роли *</label>
+                <div class="role-checks">
                     @foreach(\App\Models\Staff::ROLE_LABELS as $value => $label)
-                        <option value="{{ $value }}" {{ old('role', $item->role) === $value ? 'selected' : '' }}>{{ $label }}</option>
+                        <label>
+                            <input type="checkbox" name="roles[]" value="{{ $value }}"
+                                   onchange="toggleWarehouseField()"
+                                   {{ in_array($value, (array) old('roles', $item->roleNames()), true) ? 'checked' : '' }}>
+                            {{ $label }}
+                        </label>
                     @endforeach
-                </select>
+                </div>
+                <small style="color:#888">Можно отметить несколько — сотрудник сам переключается между ними в приложении.</small>
             </div>
-            <div class="form-group" id="warehouse-location-row" style="{{ old('role', $item->role) === 'warehouse' ? '' : 'display:none' }}">
+            <div class="form-group" id="warehouse-location-row" style="{{ in_array('warehouse', (array) old('roles', $item->roleNames()), true) ? '' : 'display:none' }}">
                 <label>Локация склада</label>
                 <input type="text" name="warehouse_location" class="form-control" value="{{ old('warehouse_location', $item->warehouse_location) }}" placeholder="Например: Алматы — Центральный">
             </div>

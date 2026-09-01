@@ -1,5 +1,5 @@
 @php
-    $showCourier = in_array(session('role'), ['admin', 'dispatcher'], true);
+    $showCourier = array_intersect($panelRoles, ['admin', 'dispatcher']) !== [];
     $canChangeStatus = $showCourier;
 @endphp
 <table>

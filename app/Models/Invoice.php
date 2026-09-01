@@ -126,12 +126,25 @@ class Invoice extends Model
 
     /**
      * Накладные, доступные сотруднику в панели управления.
+     *
      * Администратор и диспетчер видят все; курьер и агент — только свои,
-     * причём и те, что забирают у отправителя, и те, что принимают в пункте назначения.
+     * причём и те, что забирают у отправителя, и те, что принимают в пункте
+     * назначения. У многоролевого сотрудника переключателя в панели нет,
+     * поэтому правило такое: диспетчерская роль открывает всё, иначе полевая
+     * роль сужает до своих. Добавление роли никогда не расширяет доступ молча.
+     *
+     * @param  array<int, string>|string|null  $roles
      */
-    public function scopeVisibleToStaff($query, ?string $role, ?int $staffId)
+    public function scopeVisibleToStaff($query, array|string|null $roles, ?int $staffId)
     {
-        if (!Staff::isCourierRoleName($role)) {
+        $roles = array_filter((array) $roles);
+
+        if (in_array('dispatcher', $roles, true)) {
+            return $query;
+        }
+
+        $isFieldStaff = array_filter($roles, fn ($role) => Staff::isCourierRoleName($role)) !== [];
+        if (!$isFieldStaff) {
             return $query;
         }
 

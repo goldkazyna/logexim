@@ -22,17 +22,38 @@ class StaffInvoiceController extends Controller
         6 => 'delivered',
     ];
 
+    /**
+     * Роль, в которой сотрудник работает прямо сейчас.
+     *
+     * Приходит в заголовке X-Staff-Role. Пустой заголовок — основная роль:
+     * так ведут себя сборки приложения, выпущенные до многоролевости.
+     */
+    private function activeRole(Request $request, $staff): ?string
+    {
+        return $staff->resolveActiveRole($request->header('X-Staff-Role'));
+    }
+
+    private function roleRefused()
+    {
+        return response()->json(['message' => 'Эта роль вам недоступна'], 403);
+    }
+
     public function index(Request $request)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $query = Invoice::with(['courier', 'warehouse', 'receivingCourier'])->orderBy('id', 'desc');
 
-        if ($staff->isCourierRole()) {
+        if (Staff::isCourierRoleName($role)) {
             $query->where(function ($q) use ($staff) {
                 $q->where('courier_id', $staff->id)
                   ->orWhere('receiving_courier_id', $staff->id);
             });
-        } elseif ($staff->role === 'warehouse') {
+        } elseif ($role === 'warehouse') {
             // Кладовщик видит: что сейчас на приёмку (detail=2) + что у него на складе (detail=3, warehouse_id=он)
             $query->where(function ($q) use ($staff) {
                 $q->where('detail_status', 2)
@@ -52,9 +73,14 @@ class StaffInvoiceController extends Controller
     public function show(Request $request, $id)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier', 'events'])->findOrFail($id);
 
-        if ($staff->isCourierRole() && !$this->courierCanAccess($invoice, $staff)) {
+        if (Staff::isCourierRoleName($role) && !$this->courierCanAccess($invoice, $staff)) {
             return response()->json(['message' => 'Нет доступа'], 403);
         }
 
@@ -64,13 +90,18 @@ class StaffInvoiceController extends Controller
     public function findByNumber(Request $request, $number)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier'])
             ->where('invoice_number', $number)->first();
 
         if (!$invoice) {
             return response()->json(['message' => 'Накладная не найдена'], 404);
         }
-        if ($staff->isCourierRole() && !$this->courierCanAccess($invoice, $staff)) {
+        if (Staff::isCourierRoleName($role) && !$this->courierCanAccess($invoice, $staff)) {
             return response()->json(['message' => 'Накладная не назначена вам'], 403);
         }
 
@@ -87,9 +118,14 @@ class StaffInvoiceController extends Controller
     public function pickup(Request $request, $id)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $invoice = Invoice::findOrFail($id);
 
-        if (!$staff->isCourierRole()) {
+        if (!Staff::isCourierRoleName($role)) {
             return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
         if ((int) $invoice->courier_id !== (int) $staff->id) {
@@ -120,7 +156,7 @@ class StaffInvoiceController extends Controller
 
         $this->logEvent($invoice, $staff, 'pickup', $from, 2, [
             'signature_path' => $relativePath,
-        ]);
+        ], $role);
 
         return response()->json([
             'message' => 'Забор подтверждён',
@@ -132,9 +168,14 @@ class StaffInvoiceController extends Controller
     public function receive(Request $request, $id)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $invoice = Invoice::findOrFail($id);
 
-        if ($staff->role !== 'warehouse') {
+        if ($role !== 'warehouse') {
             return response()->json(['message' => 'Действие доступно только кладовщику'], 403);
         }
 
@@ -156,7 +197,7 @@ class StaffInvoiceController extends Controller
 
         $this->logEvent($invoice, $staff, 'warehouse_receive', $from, 3, [
             'warehouse_location' => $staff->warehouse_location,
-        ]);
+        ], $role);
 
         return response()->json([
             'message' => 'Принято на склад',
@@ -168,9 +209,14 @@ class StaffInvoiceController extends Controller
     public function ship(Request $request, $id)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $invoice = Invoice::findOrFail($id);
 
-        if ($staff->role !== 'warehouse') {
+        if ($role !== 'warehouse') {
             return response()->json(['message' => 'Действие доступно только кладовщику'], 403);
         }
 
@@ -196,7 +242,7 @@ class StaffInvoiceController extends Controller
 
         $this->logEvent($invoice, $staff, 'warehouse_ship', $from, 4, [
             'warehouse_location' => $staff->warehouse_location,
-        ]);
+        ], $role);
 
         return response()->json([
             'message' => 'Отправлено со склада',
@@ -208,9 +254,14 @@ class StaffInvoiceController extends Controller
     public function destinationPickup(Request $request, $id)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $invoice = Invoice::findOrFail($id);
 
-        if (!$staff->isCourierRole()) {
+        if (!Staff::isCourierRoleName($role)) {
             return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
         if ((int) $invoice->receiving_courier_id !== (int) $staff->id) {
@@ -228,7 +279,7 @@ class StaffInvoiceController extends Controller
         }
 
         $invoice->update(['detail_status' => 5]);
-        $this->logEvent($invoice, $staff, 'destination_pickup', $from, 5);
+        $this->logEvent($invoice, $staff, 'destination_pickup', $from, 5, [], $role);
 
         return response()->json([
             'message' => 'Груз принят курьером',
@@ -240,9 +291,14 @@ class StaffInvoiceController extends Controller
     public function deliver(Request $request, $id)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $invoice = Invoice::findOrFail($id);
 
-        if (!$staff->isCourierRole()) {
+        if (!Staff::isCourierRoleName($role)) {
             return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
         if ((int) $invoice->receiving_courier_id !== (int) $staff->id) {
@@ -275,7 +331,7 @@ class StaffInvoiceController extends Controller
 
         $this->logEvent($invoice, $staff, 'delivery', $from, 6, [
             'signature_path' => $relativePath,
-        ]);
+        ], $role);
 
         return response()->json([
             'message' => 'Накладная доставлена',
@@ -287,9 +343,14 @@ class StaffInvoiceController extends Controller
     public function updateCargo(Request $request, $id)
     {
         $staff = $request->user();
+        $role = $this->activeRole($request, $staff);
+        if ($role === null) {
+            return $this->roleRefused();
+        }
+
         $invoice = Invoice::findOrFail($id);
 
-        if ($staff->role !== 'warehouse') {
+        if ($role !== 'warehouse') {
             return response()->json(['message' => 'Действие доступно только кладовщику'], 403);
         }
 
@@ -337,7 +398,7 @@ class StaffInvoiceController extends Controller
             'quantity' => ['from' => $before['quantity'], 'to' => $invoice->quantity],
             'weight' => ['from' => $before['weight'], 'to' => $invoice->weight],
             'volume_weight' => ['from' => $before['volume_weight'], 'to' => $invoice->volume_weight],
-        ]);
+        ], $role);
 
         return response()->json([
             'message' => 'Данные груза обновлены',
@@ -349,7 +410,7 @@ class StaffInvoiceController extends Controller
     public function dashboard(Request $request)
     {
         $staff = $request->user();
-        if ($staff->role !== 'warehouse') {
+        if ($this->activeRole($request, $staff) !== 'warehouse') {
             return response()->json(['message' => 'Доступно только кладовщику'], 403);
         }
 
@@ -395,7 +456,7 @@ class StaffInvoiceController extends Controller
     public function history(Request $request)
     {
         $staff = $request->user();
-        if ($staff->role !== 'warehouse') {
+        if ($this->activeRole($request, $staff) !== 'warehouse') {
             return response()->json(['message' => 'Доступно только кладовщику'], 403);
         }
 
@@ -430,7 +491,7 @@ class StaffInvoiceController extends Controller
 
     // ---- helpers ----
 
-    public static function logEvent(Invoice $invoice, $staff, string $event, ?int $fromDetail, ?int $toDetail, array $meta = []): void
+    public static function logEvent(Invoice $invoice, $staff, string $event, ?int $fromDetail, ?int $toDetail, array $meta = [], ?string $actorRole = null): void
     {
         InvoiceEvent::create([
             'invoice_id' => $invoice->id,
@@ -439,7 +500,7 @@ class StaffInvoiceController extends Controller
             'to_detail_status' => $toDetail,
             'actor_type' => $staff ? 'staff' : 'admin',
             'actor_id' => $staff?->id,
-            'actor_role' => $staff?->role,
+            'actor_role' => $actorRole ?? $staff?->role,
             'actor_name' => $staff?->full_name,
             'meta' => $meta ?: null,
             'created_at' => now(),

@@ -66,19 +66,18 @@
             <span>Админ-панель</span>
         </div>
         <ul class="sidebar-menu">
-            @php $role = session('role'); @endphp
-            @if($role === 'admin')
+            @if(in_array('admin', $panelRoles, true))
                 <li><a href="/admin"><i class="fas fa-home"></i> Дашборд</a></li>
                 <li><a href="/admin/users"><i class="fas fa-users"></i> Пользователи</a></li>
                 <li><a href="/admin/staff"><i class="fas fa-user-tie"></i> Сотрудники</a></li>
             @endif
             @php
                 $newInvoicesCount = \App\Models\Invoice::where('status', 0)
-                    ->visibleToStaff(session('role'), (int) session('staff_id'))
+                    ->visibleToStaff($panelRoles, (int) session('staff_id'))
                     ->count();
             @endphp
             <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Накладные <span id="invoice-badge" style="background:#D0171C;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:5px;{{ $newInvoicesCount > 0 ? '' : 'display:none' }}">{{ $newInvoicesCount }}</span></a></li>
-            @if($role === 'admin')
+            @if(in_array('admin', $panelRoles, true))
                 <li><a href="/admin/orders"><i class="fas fa-truck"></i> Заказы/Трекинг</a></li>
                 <li><a href="/admin/news"><i class="fas fa-newspaper"></i> Новости</a></li>
                 <li><a href="/admin/pages"><i class="fas fa-file-alt"></i> Страницы</a></li>
@@ -95,11 +94,14 @@
             <div><strong>@yield('title', 'Админ-панель')</strong></div>
             <div class="topbar-right">
                 @php
-                    $role = session('role');
-                    if ($role === 'admin') {
+                    if (in_array('admin', $panelRoles, true)) {
                         $who = 'Администратор';
-                    } elseif (isset(\App\Models\Staff::ROLE_LABELS[$role])) {
-                        $who = session('full_name') . ' (' . mb_strtolower(\App\Models\Staff::ROLE_LABELS[$role]) . ')';
+                    } elseif ($panelRoles !== []) {
+                        $labels = array_map(
+                            fn ($r) => mb_strtolower(\App\Models\Staff::ROLE_LABELS[$r] ?? $r),
+                            $panelRoles,
+                        );
+                        $who = session('full_name') . ' (' . implode(', ', $labels) . ')';
                     } else {
                         $who = '';
                     }
@@ -122,7 +124,7 @@
 <script>
 (function(){
     @php
-        $initialLastId = \App\Models\Invoice::visibleToStaff(session('role'), (int) session('staff_id'))
+        $initialLastId = \App\Models\Invoice::visibleToStaff($panelRoles, (int) session('staff_id'))
             ->max('id') ?: 0;
     @endphp
     var lastId = {{ $initialLastId }};

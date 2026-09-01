@@ -20,11 +20,26 @@ class AdminController extends Controller
 {
     private function checkAuth(array $roles = ['admin'])
     {
-        $role = session('role');
-        if (!$role || !in_array($role, $roles, true)) {
+        if (array_intersect(self::sessionRoles(), $roles) === []) {
             return redirect('/admin');
         }
         return null;
+    }
+
+    /**
+     * Роли текущей сессии. Старые сессии, открытые до многоролевости, знают
+     * только строковую role — для них набор собирается из неё.
+     *
+     * @return list<string>
+     */
+    private static function sessionRoles(): array
+    {
+        $roles = array_values(array_filter((array) session('roles', [])));
+        if ($roles !== []) {
+            return $roles;
+        }
+
+        return array_values(array_filter([session('role')]));
     }
 
     // === AUTH ===
@@ -46,7 +61,7 @@ class AdminController extends Controller
         // 1) Admin
         $admin = Admin::where('login', $login)->where('password', $passwordHash)->first();
         if ($admin) {
-            session(['admin' => $login, 'role' => 'admin']);
+            session(['admin' => $login, 'role' => 'admin', 'roles' => ['admin']]);
             return redirect('/admin/dashboard');
         }
 
@@ -59,7 +74,10 @@ class AdminController extends Controller
             session([
                 'staff_id' => $staff->id,
                 'staff_login' => $staff->login,
-                'role' => $staff->role,
+                // role — основная роль, ею подписан интерфейс панели;
+                // roles — весь набор, по нему считаются права.
+                'role' => $staff->primaryRole() ?? $staff->role,
+                'roles' => $staff->roleNames(),
                 'full_name' => $staff->full_name,
             ]);
             return redirect('/admin/invoices');
@@ -113,11 +131,12 @@ class AdminController extends Controller
 
     public function checkNewInvoices(Request $request)
     {
-        if (!in_array(session('role'), array_merge(['admin', 'dispatcher'], Staff::COURIER_ROLES), true)) {
+        $allowed = array_merge(['admin', 'dispatcher'], Staff::COURIER_ROLES);
+        if (array_intersect(self::sessionRoles(), $allowed) === []) {
             return response()->json(['error' => 'unauthorized'], 401);
         }
         $lastId = $request->input('last_id', 0);
-        $role = session('role');
+        $role = self::sessionRoles();
         $staffId = (int) session('staff_id');
 
         $count = Invoice::where('status', 0)->visibleToStaff($role, $staffId)->count();
@@ -128,7 +147,7 @@ class AdminController extends Controller
             ->get();
 
         $maxId = Invoice::visibleToStaff($role, $staffId)->max('id') ?: 0;
-        $showCourier = in_array(session('role'), ['admin', 'dispatcher'], true);
+        $showCourier = array_intersect(self::sessionRoles(), ['admin', 'dispatcher']) !== [];
         if ($showCourier) {
             $newInvoices->load('courier');
         }
@@ -162,7 +181,7 @@ class AdminController extends Controller
     {
         if ($r = $this->checkAuth(array_merge(['admin', 'dispatcher'], Staff::COURIER_ROLES))) return $r;
         $query = Invoice::with(['user', 'courier'])
-            ->visibleToStaff(session('role'), (int) session('staff_id'))
+            ->visibleToStaff(self::sessionRoles(), (int) session('staff_id'))
             ->orderBy('id', 'desc');
         if ($request->has('search') && $request->input('search') !== '') {
             $search = $request->input('search');
@@ -195,7 +214,10 @@ class AdminController extends Controller
         $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier', 'events'])->findOrFail($id);
 
         // Курьер и агент открывают только свои накладные — по любой из двух сторон.
-        if (Staff::isCourierRoleName(session('role'))) {
+        $sessionRoles = self::sessionRoles();
+        $isFieldStaff = !in_array('dispatcher', $sessionRoles, true)
+            && array_filter($sessionRoles, fn ($r) => Staff::isCourierRoleName($r)) !== [];
+        if ($isFieldStaff) {
             $staffId = (int) session('staff_id');
             if ((int) $invoice->courier_id !== $staffId && (int) $invoice->receiving_courier_id !== $staffId) {
                 return redirect('/admin/invoices');
@@ -203,8 +225,8 @@ class AdminController extends Controller
         }
 
         // Списки для двух выпадающих полей: в каждом обе группы, разный порядок.
-        $couriers = Staff::where('role', 'courier')->orderBy('full_name')->get();
-        $agents   = Staff::where('role', 'agent')->orderBy('full_name')->get();
+        $couriers = Staff::withRole('courier')->orderBy('full_name')->get();
+        $agents   = Staff::withRole('agent')->orderBy('full_name')->get();
         return view('admin.invoice_view', compact('invoice', 'couriers', 'agents'));
     }
 
