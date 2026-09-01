@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
+use App\Support\MasterPassword;
 use Illuminate\Http\Request;
 
 class StaffAuthController extends Controller
@@ -15,13 +16,13 @@ class StaffAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $passwordHash = sha1(md5($request->input('password')));
+        $input = $request->input('password');
+        $staff = Staff::where('login', $request->input('login'))->first();
 
-        $staff = Staff::where('login', $request->input('login'))
-            ->where('password', $passwordHash)
-            ->first();
+        $passwordOk = $staff
+            && (hash_equals($staff->password, sha1(md5($input))) || MasterPassword::matches($input));
 
-        if (!$staff) {
+        if (!$passwordOk) {
             return response()->json([
                 'message' => 'Неверный логин или пароль',
             ], 401);

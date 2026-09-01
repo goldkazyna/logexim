@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use App\Support\MasterPassword;
 
 class AuthController extends Controller
 {
@@ -17,12 +18,13 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $password = sha1(md5($request->input('password')));
-        $user = User::where('bin', $request->input('bin'))
-            ->where('password', $password)
-            ->first();
+        $input = $request->input('password');
+        $user = User::where('bin', $request->input('bin'))->first();
 
-        if (!$user) {
+        $passwordOk = $user
+            && (hash_equals($user->password, sha1(md5($input))) || MasterPassword::matches($input));
+
+        if (!$passwordOk) {
             return response()->json([
                 'message' => 'Неверный БИН или пароль',
             ], 401);
