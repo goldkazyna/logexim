@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/staff/invoices/{id}/ship', [StaffInvoiceController::class, 'ship'])->whereNumber('id');
     Route::post('/staff/invoices/{id}/destination-pickup', [StaffInvoiceController::class, 'destinationPickup'])->whereNumber('id');
     Route::post('/staff/invoices/{id}/deliver', [StaffInvoiceController::class, 'deliver'])->whereNumber('id');
+    Route::post('/staff/invoices/{id}/cargo', [StaffInvoiceController::class, 'updateCargo'])->whereNumber('id');
 
     // Invoices
     Route::get('/invoices', [InvoiceController::class, 'index']);

@@ -283,6 +283,62 @@ class StaffInvoiceController extends Controller
         ]);
     }
 
+    // POST /api/staff/invoices/{id}/cargo — кладовщик уточняет вес и места
+    public function updateCargo(Request $request, $id)
+    {
+        $staff = $request->user();
+        $invoice = Invoice::findOrFail($id);
+
+        if ($staff->role !== 'warehouse') {
+            return response()->json(['message' => 'Действие доступно только кладовщику'], 403);
+        }
+
+        // Править можно, пока груз едет на склад или лежит на нём. После
+        // отправки (detail 4+) груз уже физически уехал — взвешивать нечего.
+        $detail = (int) $invoice->detail_status;
+        if ($detail < 2 || $detail > 3) {
+            return response()->json([
+                'message' => $detail < 2
+                    ? 'Накладная ещё не забрана курьером'
+                    : 'Груз уже отправлен со склада — изменить вес и места нельзя',
+            ], 422);
+        }
+        if ($detail === 3 && (int) $invoice->warehouse_id !== (int) $staff->id) {
+            return response()->json([
+                'message' => 'Накладная принята другим кладовщиком',
+            ], 403);
+        }
+
+        $data = $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'weight' => 'required|numeric|gt:0',
+            'volume_weight' => 'nullable|numeric|min:0',
+        ]);
+
+        $before = [
+            'quantity' => $invoice->quantity,
+            'weight' => $invoice->weight,
+            'volume_weight' => $invoice->volume_weight,
+        ];
+
+        $invoice->update([
+            'quantity' => $data['quantity'],
+            'weight' => $data['weight'],
+            'volume_weight' => $data['volume_weight'] ?? null,
+        ]);
+
+        $this->logEvent($invoice, $staff, 'cargo_changed', $detail, $detail, [
+            'quantity' => ['from' => $before['quantity'], 'to' => $invoice->quantity],
+            'weight' => ['from' => $before['weight'], 'to' => $invoice->weight],
+            'volume_weight' => ['from' => $before['volume_weight'], 'to' => $invoice->volume_weight],
+        ]);
+
+        return response()->json([
+            'message' => 'Данные груза обновлены',
+            'invoice' => $this->present($invoice->fresh(['courier', 'warehouse', 'receivingCourier']), full: true),
+        ]);
+    }
+
     // GET /api/staff/dashboard — сводка для кладовщика
     public function dashboard(Request $request)
     {
@@ -451,6 +507,7 @@ class StaffInvoiceController extends Controller
             'courier_name' => optional($inv->courier)->full_name,
             'receiving_courier_id' => $inv->receiving_courier_id ? (int) $inv->receiving_courier_id : null,
             'receiving_courier_name' => optional($inv->receivingCourier)->full_name,
+            'warehouse_id' => $inv->warehouse_id ? (int) $inv->warehouse_id : null,
             'warehouse_name' => optional($inv->warehouse)->full_name,
             'warehouse_location' => optional($inv->warehouse)->warehouse_location,
             'sender' => [
@@ -486,6 +543,10 @@ class StaffInvoiceController extends Controller
                     ? $inv->volume_weight . ' кг' : '',
                 'quantity' => $inv->quantity !== null ? $inv->quantity . ' мест' : '',
                 'fragile' => (bool) $inv->fragile,
+                // Сырые значения — для полей ввода в мобильном приложении.
+                'weight_raw' => self::plainNumber($inv->weight),
+                'volume_weight_raw' => self::plainNumber($inv->volume_weight),
+                'quantity_raw' => $inv->quantity !== null ? (string) (int) $inv->quantity : '',
             ],
             'special' => (string) $inv->special,
         ];
@@ -506,6 +567,16 @@ class StaffInvoiceController extends Controller
         }
 
         return $data;
+    }
+
+    /** "41.50" → "41.5", "20.00" → "20". Для полей ввода, а не для показа. */
+    private static function plainNumber($value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        return rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
     }
 
     private function composeAddress(?string $address, ?string $city, ?string $region, ?string $country): string
