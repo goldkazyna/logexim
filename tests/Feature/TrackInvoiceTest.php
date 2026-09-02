@@ -63,17 +63,34 @@ class TrackInvoiceTest extends TestCase
             ->assertJsonPath('found', false);
     }
 
-    public function test_response_carries_no_personal_data(): void
+    public function test_response_carries_names_but_not_contacts(): void
     {
         $this->makeInvoice();
 
         $body = $this->postJson('/ajax/trackInvoice', ['invoice_number' => '903088'])
             ->assertOk()
+            ->assertJsonPath('invoice.sender.city', 'Алматы')
+            ->assertJsonPath('invoice.recipient.city', 'Астана')
             ->getContent();
 
-        foreach (['Иванов', 'Петров', '77010000000', '77020000000', 'Абая', 'Достык', 'Ноутбуки'] as $secret) {
+        // Имена — по решению владельца показываем; телефоны/улицы/груз — нет.
+        foreach (['77010000000', '77020000000', 'Абая', 'Достык', 'Ноутбуки'] as $secret) {
             $this->assertStringNotContainsString($secret, $body);
         }
+    }
+
+    public function test_public_pdf_is_available_by_number(): void
+    {
+        $this->makeInvoice();
+
+        $res = $this->get('/track/903088/pdf');
+        $res->assertOk();
+        $this->assertSame('application/pdf', strtolower($res->headers->get('content-type') ?? ''));
+    }
+
+    public function test_public_pdf_404_for_unknown_number(): void
+    {
+        $this->get('/track/999999/pdf')->assertNotFound();
     }
 
     public function test_cancelled_invoice_is_reported_as_cancelled(): void

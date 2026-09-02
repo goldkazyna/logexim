@@ -114,8 +114,10 @@ class InvoicePublicTrackingTest extends TestCase
         $this->assertSame('20', $tracking['weight']);
     }
 
-    public function test_personal_data_never_leaks_into_tracking(): void
+    public function test_tracking_exposes_names_but_not_contacts_or_cargo(): void
     {
+        // По решению владельца имена сторон показываются. Но телефоны, улицы
+        // и описание груза в JSON трекинга не отдаём — их нет и в макете.
         $tracking = $this->invoice([
             'sender_name' => 'Иванов Иван',
             'sender_phone' => '+77010000000',
@@ -127,8 +129,40 @@ class InvoicePublicTrackingTest extends TestCase
         ])->publicTracking();
 
         $leaked = json_encode($tracking, JSON_UNESCAPED_UNICODE);
-        foreach (['Иванов', 'Петров', '77010000000', '77020000000', 'Абая', 'Достык', 'Ноутбуки'] as $secret) {
+        foreach (['77010000000', '77020000000', 'Абая', 'Достык', 'Ноутбуки'] as $secret) {
             $this->assertStringNotContainsString($secret, $leaked);
         }
+    }
+
+    public function test_exposes_sender_and_recipient_with_city(): void
+    {
+        $tracking = $this->invoice([
+            'sender_company' => 'ТОО Хилти',
+            'sender_name' => 'Иванов',
+            'sender_city' => 'Алматы',
+            'recipient_company' => '',
+            'recipient_name' => 'Петров Пётр',
+            'recipient_city' => 'Астана',
+        ])->publicTracking();
+
+        $this->assertSame('ТОО Хилти', $tracking['sender']['name']);
+        $this->assertSame('Алматы', $tracking['sender']['city']);
+        $this->assertSame('Петров Пётр', $tracking['recipient']['name'], 'без компании берём ФИО');
+        $this->assertSame('Астана', $tracking['recipient']['city']);
+    }
+
+    public function test_insured_flag_reflects_declared_value(): void
+    {
+        $this->assertTrue($this->invoice(['declared_value' => 50000])->publicTracking()['insured']);
+        $this->assertFalse($this->invoice(['declared_value' => 0])->publicTracking()['insured']);
+    }
+
+    public function test_stage_times_are_empty_without_loaded_events(): void
+    {
+        $tracking = $this->invoice(['status' => 1, 'detail_status' => 3])->publicTracking();
+
+        // Без подгруженных событий времена этапов не выдумываются.
+        $this->assertIsArray($tracking['stage_times']);
+        $this->assertArrayNotHasKey(3, $tracking['stage_times']);
     }
 }

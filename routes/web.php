@@ -17,6 +17,7 @@ Route::post('/ajax/calcDeliveryCar', [AjaxController::class, 'calcDeliveryCar'])
 Route::post('/ajax/calcDeliveryAir', [AjaxController::class, 'calcDeliveryAir']);
 Route::post('/ajax/calcDeliveryZd', [AjaxController::class, 'calcDeliveryZd']);
 Route::post('/ajax/trackInvoice', [AjaxController::class, 'trackInvoice']);
+Route::get('/track/{number}/pdf', [AjaxController::class, 'trackInvoicePdf'])->whereNumber('number');
 Route::post('/ajax/send_from', [AjaxController::class, 'sendFrom']);
 
 // Cabinet

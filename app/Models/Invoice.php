@@ -77,6 +77,17 @@ class Invoice extends Model
             'plan_date' => $this->formatDate($this->plan_date),
             'fact_date' => $this->formatDate($this->fact_date),
             'delivered_at' => $this->formatDate($this->delivered_at),
+            'insured' => (float) ($this->declared_value ?? 0) > 0,
+            'sender' => [
+                'name' => $this->partyName($this->sender_company, $this->sender_name),
+                'city' => (string) $this->sender_city,
+            ],
+            'recipient' => [
+                'name' => $this->partyName($this->recipient_company, $this->recipient_name),
+                'city' => (string) $this->recipient_city,
+            ],
+            // Время достижения каждого этапа — из журнала, где он есть.
+            'stage_times' => $this->stageTimes(),
             'steps' => $cancelled || ! $known
                 ? []
                 : $this->buildSteps(array_slice(self::STATUSES, 0, 4, true), $status),
@@ -109,6 +120,49 @@ class Invoice extends Model
         }
 
         return $steps;
+    }
+
+    private function partyName(?string $company, ?string $name): string
+    {
+        $company = trim((string) $company);
+        return $company !== '' ? $company : trim((string) $name);
+    }
+
+    /**
+     * Время достижения этапов детальной цепочки — из журнала накладной.
+     * Ключ — номер этапа (to_detail_status), значение — «дд.мм.гггг чч:мм».
+     * Работает только если события подгружены (with('events')).
+     *
+     * @return array<int, string>
+     */
+    private function stageTimes(): array
+    {
+        $times = [];
+
+        $created = $this->created_at ?? $this->date;
+        if (!empty($created)) {
+            $times[0] = $this->formatDateTime($created);
+        }
+
+        if ($this->relationLoaded('events')) {
+            foreach ($this->events as $event) {
+                $stage = $event->to_detail_status;
+                if ($stage !== null && !empty($event->created_at)) {
+                    $times[(int) $stage] = $this->formatDateTime($event->created_at);
+                }
+            }
+        }
+
+        return $times;
+    }
+
+    private function formatDateTime($value): string
+    {
+        try {
+            return \Carbon\Carbon::parse($value)->format('d.m.Y H:i');
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     private function formatDate($value): string

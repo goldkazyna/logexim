@@ -55,7 +55,7 @@ class AjaxController extends Controller
             return response()->json(['found' => false]);
         }
 
-        $invoice = Invoice::where('invoice_number', $number)->first();
+        $invoice = Invoice::with('events')->where('invoice_number', $number)->first();
 
         if (! $invoice) {
             return response()->json(['found' => false]);
@@ -65,6 +65,24 @@ class AjaxController extends Controller
             'found' => true,
             'invoice' => $invoice->publicTracking(),
         ]);
+    }
+
+    /**
+     * Публичная накладная в PDF по её номеру — со страницы отслеживания.
+     * По решению владельца доступна без авторизации.
+     */
+    public function trackInvoicePdf($number)
+    {
+        if (!ctype_digit((string) $number)) {
+            abort(404);
+        }
+
+        $invoice = Invoice::where('invoice_number', $number)->firstOrFail();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('api.invoice_pdf', compact('invoice'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download("nakladnaya_{$invoice->invoice_number}.pdf");
     }
 
     public function sendFrom(Request $request)
