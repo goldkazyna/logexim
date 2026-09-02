@@ -42,12 +42,6 @@
                                     </span>
                                     <span><b class="trk__fact-t"></b><em class="trk__fact-v"></em></span>
                                 </div>
-                                <div class="trk__fact trk__fact_ins">
-                                    <span class="trk__fact-ic">
-                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
-                                    </span>
-                                    <span><b>Страхование груза</b><em class="trk__ins-v"></em></span>
-                                </div>
                             </div>
                         </div>
 
@@ -290,9 +284,6 @@
         else if (inv.plan_date) { etaT.textContent = 'Ожидаемая дата доставки'; etaV.textContent = inv.plan_date; }
         else { etaT.textContent = 'Дата доставки'; etaV.textContent = 'уточняется'; }
 
-        var insV = card.querySelector('.trk__ins-v');
-        insV.textContent = inv.insured ? 'Оформлено' : 'Не оформлено';
-        insV.classList.toggle('is-on', !!inv.insured);
 
         card.querySelector('.trk__cancelled').hidden = !inv.cancelled;
 
