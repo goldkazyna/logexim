@@ -125,6 +125,8 @@
 .trk__timeline li:last-child { padding-bottom: 0; }
 .trk__timeline li::after { content: ''; position: absolute; left: 15px; top: 34px; bottom: -4px; width: 2px; background: #e8e8e8; }
 .trk__timeline li:last-child::after { display: none; }
+.trk__step-ic { flex: none; width: 26px; display: flex; align-items: center; justify-content: center; color: #6b7280; }
+.trk__timeline li.is-done .trk__step-ic, .trk__timeline li.is-current .trk__step-ic { color: #1a1a1a; }
 .trk__dot { flex: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: #f0f1f3; color: #9aa0a6; z-index: 1; }
 .trk__timeline li.is-done .trk__dot { background: #28a745; color: #fff; }
 .trk__timeline li.is-done .trk__dot::after { content: '\2713'; }
@@ -191,12 +193,28 @@
         });
     }
 
+    // Иконки этапов таймлайна (по индексу). Детальная цепочка — 7 шагов,
+    // административная — 4.
+    var STEP_ICONS_DETAIL = [
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg>',
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>',
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l9-6 9 6v12"/><path d="M3 21h18M9 21v-6h6v6"/></svg>',
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>',
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>'
+    ];
+    var STEP_ICONS_ADMIN = [STEP_ICONS_DETAIL[0], '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>', STEP_ICONS_DETAIL[1], STEP_ICONS_DETAIL[6]];
+
     function renderTimeline(list, steps, planDate) {
         list.innerHTML = '';
         steps.forEach(function (s, i) {
             var li = el('li', 'is-' + s.state);
             var dot = el('span', 'trk__dot');
             if (s.state !== 'done') dot.textContent = String(i + 1);
+            var icons = steps.length === 7 ? STEP_ICONS_DETAIL : STEP_ICONS_ADMIN;
+            var ic = el('span', 'trk__step-ic');
+            ic.innerHTML = icons[i] || '';
             var row = el('div', 'trk__row');
             row.appendChild(el('span', 'trk__step-t', s.title));
 
@@ -211,6 +229,7 @@
             }
 
             li.appendChild(dot);
+            li.appendChild(ic);
             li.appendChild(row);
             list.appendChild(li);
         });
