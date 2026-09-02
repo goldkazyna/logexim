@@ -67,24 +67,6 @@ class AjaxController extends Controller
         ]);
     }
 
-    /**
-     * Публичная накладная в PDF по её номеру — со страницы отслеживания.
-     * По решению владельца доступна без авторизации.
-     */
-    public function trackInvoicePdf($number)
-    {
-        if (!ctype_digit((string) $number)) {
-            abort(404);
-        }
-
-        $invoice = Invoice::where('invoice_number', $number)->firstOrFail();
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('api.invoice_pdf', compact('invoice'))
-            ->setPaper('a4', 'portrait');
-
-        return $pdf->download("nakladnaya_{$invoice->invoice_number}.pdf");
-    }
-
     public function sendFrom(Request $request)
     {
         $phone = $request->input('phone');

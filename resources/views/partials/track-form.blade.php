@@ -57,10 +57,6 @@
                             <div class="trk__panel trk__panel_side">
                                 <div class="trk__panel-title">Информация по отправлению</div>
                                 <div class="trk__info"></div>
-                                <a class="trk__pdf" href="#" target="_blank" rel="noopener" hidden>
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 18h4"/></svg>
-                                    Скачать накладную (PDF)
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -141,8 +137,6 @@
 .trk__inforow-v { font-size: 15px; font-weight: 700; margin-top: 2px; }
 .trk__inforow-sub { font-size: 13px; color: #6b7280; font-weight: 400; }
 
-.trk__pdf { margin-top: 22px; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; box-sizing: border-box; padding: 13px; border: 1px solid #d0171c; border-radius: 12px; color: #d0171c; font-weight: 700; font-size: 15px; transition: all .2s; }
-.trk__pdf:hover { background: #d0171c; color: #fff; }
 
 @media (max-width: 991px) {
     .trk__summary { grid-template-columns: 1fr; gap: 20px; }
@@ -303,9 +297,6 @@
         if (inv.quantity) info.appendChild(infoRow(BOX_IC, 'Количество мест', trimNum(inv.quantity) + ' мест'));
         if (inv.weight) info.appendChild(infoRow(SCALE_IC, 'Вес груза', trimNum(inv.weight) + ' кг'));
 
-        var pdf = card.querySelector('.trk__pdf');
-        pdf.href = '/track/' + encodeURIComponent(inv.number) + '/pdf';
-        pdf.hidden = false;
 
         card.hidden = false;
     }

@@ -79,19 +79,7 @@ class TrackInvoiceTest extends TestCase
         }
     }
 
-    public function test_public_pdf_is_available_by_number(): void
-    {
-        $this->makeInvoice();
 
-        $res = $this->get('/track/903088/pdf');
-        $res->assertOk();
-        $this->assertSame('application/pdf', strtolower($res->headers->get('content-type') ?? ''));
-    }
-
-    public function test_public_pdf_404_for_unknown_number(): void
-    {
-        $this->get('/track/999999/pdf')->assertNotFound();
-    }
 
     public function test_cancelled_invoice_is_reported_as_cancelled(): void
     {
