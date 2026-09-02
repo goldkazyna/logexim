@@ -24,6 +24,21 @@ class Invoice extends Model
         return self::DETAIL_STATUSES[$this->detail_status] ?? '—';
     }
 
+    /**
+     * Клиентские названия этапов для публичного отслеживания на сайте.
+     * Отличаются от операционных DETAIL_STATUSES (их видят курьер, кладовщик
+     * и админка) — здесь язык для получателя груза.
+     */
+    public const PUBLIC_DETAIL_STATUSES = [
+        0 => 'Заявка создана',
+        1 => 'Выведен на доставку',
+        2 => 'Груз находится у курьера на маршруте',
+        3 => 'Прибыл в терминал RKC',
+        4 => 'Груз прибыл в город назначения',
+        5 => 'Груз находится у курьера на маршруте',
+        6 => 'Доставлен',
+    ];
+
     /** Административный статус — то, что видно в колонке «Статус» в админке. */
     public const STATUSES = [
         0 => 'Заявка создана',
@@ -93,7 +108,7 @@ class Invoice extends Model
                 : $this->buildSteps(array_slice(self::STATUSES, 0, 4, true), $status),
             'detail_steps' => $cancelled || $detail <= 0
                 ? []
-                : $this->buildSteps(self::DETAIL_STATUSES, $detail),
+                : $this->buildSteps(self::PUBLIC_DETAIL_STATUSES, $detail),
         ];
     }
 

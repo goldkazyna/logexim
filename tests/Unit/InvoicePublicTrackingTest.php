@@ -78,7 +78,7 @@ class InvoicePublicTrackingTest extends TestCase
         $tracking = $this->invoice(['status' => 1, 'detail_status' => 3])->publicTracking();
 
         $this->assertCount(7, $tracking['detail_steps']);
-        $this->assertSame('На складе', $tracking['detail_steps'][3]['title']);
+        $this->assertSame('Прибыл в терминал RKC', $tracking['detail_steps'][3]['title']);
         $this->assertSame(
             ['done', 'done', 'done', 'current', 'pending', 'pending', 'pending'],
             $this->states($tracking['detail_steps']),

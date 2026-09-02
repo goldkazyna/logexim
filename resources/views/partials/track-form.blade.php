@@ -191,7 +191,7 @@
         });
     }
 
-    function renderTimeline(list, steps) {
+    function renderTimeline(list, steps, planDate) {
         list.innerHTML = '';
         steps.forEach(function (s, i) {
             var li = el('li', 'is-' + s.state);
@@ -199,7 +199,17 @@
             if (s.state !== 'done') dot.textContent = String(i + 1);
             var row = el('div', 'trk__row');
             row.appendChild(el('span', 'trk__step-t', s.title));
-            if (s.at) row.appendChild(el('span', 'trk__step-at', s.at));
+
+            // Пройденный шаг — время из журнала; будущий — пометка «Ожидается»
+            // (на финальном шаге добавляем плановую дату доставки, если есть).
+            if (s.at) {
+                row.appendChild(el('span', 'trk__step-at', s.at));
+            } else if (s.state === 'pending') {
+                var last = i === steps.length - 1;
+                var txt = (last && planDate) ? 'Ожидается: ' + planDate : 'Ожидается';
+                row.appendChild(el('span', 'trk__step-at', txt));
+            }
+
             li.appendChild(dot);
             li.appendChild(row);
             list.appendChild(li);
@@ -272,7 +282,7 @@
         if (inv.cancelled) {
             timeline.innerHTML = '';
         } else {
-            renderTimeline(timeline, timelineSteps(inv));
+            renderTimeline(timeline, timelineSteps(inv), inv.plan_date);
         }
 
         // Информация по отправлению
