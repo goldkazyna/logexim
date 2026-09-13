@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Admin;
 use App\Models\Staff;
+use App\Models\CityDelivery;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -20,14 +21,15 @@ class StaffController extends Controller
     public function index()
     {
         if ($r = $this->checkAdmin()) return $r;
-        $staff = Staff::orderBy('id', 'desc')->get();
+        $staff = Staff::with('cities')->orderBy('id', 'desc')->get();
         return view('admin.staff.index', compact('staff'));
     }
 
     public function create()
     {
         if ($r = $this->checkAdmin()) return $r;
-        return view('admin.staff.create');
+        $cities = CityDelivery::orderBy('title')->get(['id', 'title']);
+        return view('admin.staff.create', compact('cities'));
     }
 
     public function store(Request $request)
@@ -53,7 +55,7 @@ class StaffController extends Controller
 
         $roles = self::normalizeRoles($data['roles']);
 
-        Staff::create([
+        $staff = Staff::create([
             'full_name' => $data['full_name'],
             'login'     => $data['login'],
             'password'  => sha1(md5($data['password'])),
@@ -69,8 +71,24 @@ class StaffController extends Controller
                 : null,
             'active'    => $request->has('active') ? 1 : 0,
         ]);
+        $staff->cities()->sync($this->validCityIds($request));
 
         return redirect('/admin/staff')->with('success', 'Сотрудник добавлен');
+    }
+
+    /**
+     * Оставляет из присланных city_ids только реально существующие города.
+     *
+     * @return list<int>
+     */
+    private function validCityIds(Request $request): array
+    {
+        $ids = array_map('intval', (array) $request->input('city_ids', []));
+        if ($ids === []) {
+            return [];
+        }
+
+        return CityDelivery::whereIn('id', $ids)->pluck('id')->all();
     }
 
     /**
@@ -92,7 +110,8 @@ class StaffController extends Controller
     {
         if ($r = $this->checkAdmin()) return $r;
         $item = Staff::findOrFail($id);
-        return view('admin.staff.edit', compact('item'));
+        $cities = CityDelivery::orderBy('title')->get(['id', 'title']);
+        return view('admin.staff.edit', compact('item', 'cities'));
     }
 
     public function update(Request $request, $id)
@@ -138,6 +157,7 @@ class StaffController extends Controller
         }
 
         $item->update($update);
+        $item->cities()->sync($this->validCityIds($request));
 
         return redirect('/admin/staff')->with('success', 'Сотрудник обновлён');
     }

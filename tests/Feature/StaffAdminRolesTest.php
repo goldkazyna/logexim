@@ -143,8 +143,11 @@ class StaffAdminRolesTest extends TestCase
     {
         $this->existing(['roles' => ['courier', 'warehouse']]);
 
+        // Роли показываются отдельными чипами и в секциях по ролям.
         $this->get('/admin/staff')
             ->assertOk()
-            ->assertSee('Курьер, Кладовщик');
+            ->assertSee('Курьеры')
+            ->assertSee('Кладовщики')
+            ->assertSee('Петров Пётр');
     }
 }

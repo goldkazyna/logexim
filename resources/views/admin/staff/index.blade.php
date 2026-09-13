@@ -17,6 +17,9 @@
     .stf-id { flex:1; min-width:0; }
     .stf-name { font-weight:700; color:#1a1a1a; font-size:14.5px; }
     .stf-login { color:#9aa0a6; font-size:12.5px; margin-top:1px; }
+    .stf-cities { color:#374151; font-size:12px; margin-top:3px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+    .stf-cities svg{ width:13px; height:13px; color:#9aa0a6; flex:none; }
+    .stf-city { background:#eef2f7; color:#334155; border-radius:6px; padding:1px 7px; font-size:11.5px; white-space:nowrap; }
     .stf-chips { display:flex; flex-wrap:wrap; gap:5px; width:230px; }
     .stf-chip { font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:999px; white-space:nowrap; }
     .stf-chip.courier    { color:#2563eb; background:#e8f0fe; }
@@ -83,6 +86,12 @@
                             <div class="stf-id">
                                 <div class="stf-name">{{ $s->full_name }}</div>
                                 <div class="stf-login">{{ $s->login }}@if($s->email) · {{ $s->email }}@endif</div>
+                                @if($s->cities->count())
+                                <div class="stf-cities">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                    @foreach($s->cities as $c)<span class="stf-city">{{ $c->title }}</span>@endforeach
+                                </div>
+                                @endif
                             </div>
                             <div class="stf-chips">
                                 @foreach($s->roleNames() as $r)

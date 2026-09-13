@@ -135,4 +135,10 @@ class Staff extends Authenticatable
 
         return $labels === [] ? (string) $this->role : implode(', ', $labels);
     }
+
+    /** Города обслуживания сотрудника (курьер/агент). */
+    public function cities()
+    {
+        return $this->belongsToMany(CityDelivery::class, 'staff_city', 'staff_id', 'city_id');
+    }
 }

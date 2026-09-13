@@ -14,6 +14,9 @@ function toggleWarehouseField() {
 <style>
     .role-checks { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 4px 0; }
     .role-checks label { display: inline-flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer; margin: 0; }
+    .city-checks { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:6px 14px;
+        max-height:210px; overflow:auto; padding:10px 12px; border:1px solid #e6e8ee; border-radius:8px; background:#fafbfc; }
+    .city-checks label { display:inline-flex; align-items:center; gap:7px; font-weight:normal; cursor:pointer; margin:0; font-size:14px; }
 </style>
 
 @endpush
@@ -58,6 +61,21 @@ function toggleWarehouseField() {
             <div class="form-group" id="warehouse-location-row" style="{{ in_array('warehouse', (array) old('roles', []), true) ? '' : 'display:none' }}">
                 <label>Локация склада</label>
                 <input type="text" name="warehouse_location" class="form-control" value="{{ old('warehouse_location') }}" placeholder="Например: Алматы — Центральный">
+            </div>
+            <div class="form-group">
+                <label>Города обслуживания</label>
+                <div class="city-checks">
+                    @forelse($cities as $city)
+                        <label>
+                            <input type="checkbox" name="city_ids[]" value="{{ $city->id }}"
+                                   {{ in_array($city->id, (array) old('city_ids', []), true) ? 'checked' : '' }}>
+                            {{ $city->title }}
+                        </label>
+                    @empty
+                        <span style="color:#888">Справочник городов пуст — добавьте города в разделе «Города».</span>
+                    @endforelse
+                </div>
+                <small style="color:#888">Отметьте города, которые обслуживает сотрудник. Можно несколько.</small>
             </div>
             <div class="form-group">
                 <label>Телефон</label>
