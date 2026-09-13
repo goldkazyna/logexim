@@ -11,8 +11,8 @@
         <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">ФИО</label><input type="text" name="recipient_name" class="form-input w-full md:w-1/2" required></div>
         <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Телефон</label><input type="text" name="recipient_phone" class="form-input w-full md:w-1/2" required></div>
         <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Компания</label><input type="text" name="company" class="form-input w-full md:w-1/2"></div>
-        <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Город</label><input type="text" name="city" class="form-input w-full md:w-1/2"></div>
-        <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Страна</label><input type="text" name="country" class="form-input w-full md:w-1/2"></div>
+        <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Город</label>@include('partials.city-select', ['id' => 'tpl-city', 'name' => 'city', 'selected' => '', 'cities' => $cities])</div>
+        <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Страна</label><input type="text" name="country" class="form-input w-full md:w-1/2 bg-gray-100" value="Казахстан" readonly tabindex="-1"></div>
         <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Область</label><input type="text" name="region" class="form-input w-full md:w-1/2"></div>
         <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Район</label><input type="text" name="district" class="form-input w-full md:w-1/2"></div>
         <div class="mb-4"><label class="text-gray-800 font-bold text-base inline-block mb-2">Адрес</label><textarea name="address" class="form-input w-full md:w-1/2" rows="3"></textarea></div>

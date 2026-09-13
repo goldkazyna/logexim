@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceEvent;
 use App\Models\RecipientTemplate;
 use App\Models\DescriptionTemplate;
+use App\Models\CityDelivery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -148,7 +149,8 @@ class CabinetController extends Controller
         $user = $this->getUser();
         $templates = RecipientTemplate::where('user_id', $user->id)->get();
         $descriptionTemplates = DescriptionTemplate::where('user_id', $user->id)->get();
-        return view('cabinet.invoices.create', compact('user', 'templates', 'descriptionTemplates'));
+        $cities = CityDelivery::orderBy('title')->get(['id', 'title']);
+        return view('cabinet.invoices.create', compact('user', 'templates', 'descriptionTemplates', 'cities'));
     }
 
     public function saveInvoice(Request $request)
@@ -163,11 +165,11 @@ class CabinetController extends Controller
             'date' => $request->input('date'),
             'sender_name' => $request->input('sender_name'), 'sender_phone' => $request->input('sender_phone'),
             'sender_company' => $request->input('sender_company'), 'sender_city' => $request->input('sender_city'),
-            'sender_country' => $request->input('sender_country'), 'sender_region' => $request->input('sender_region'),
+            'sender_country' => 'Казахстан', 'sender_region' => $request->input('sender_region'),
             'sender_district' => $request->input('sender_district'), 'sender_address' => $request->input('sender_address'),
             'recipient_name' => $request->input('recipient_name'), 'recipient_phone' => $request->input('recipient_phone'),
             'recipient_company' => $request->input('recipient_company'), 'recipient_city' => $request->input('recipient_city'),
-            'recipient_country' => $request->input('recipient_country'), 'recipient_region' => $request->input('recipient_region'),
+            'recipient_country' => 'Казахстан', 'recipient_region' => $request->input('recipient_region'),
             'recipient_district' => $request->input('recipient_district'), 'recipient_address' => $request->input('recipient_address'),
             'description' => $request->input('description', ''), 'quantity' => $request->input('quantity', 1),
             'weight' => $request->input('weight', 0), 'volume_weight' => $request->input('volume_weight'),
@@ -368,7 +370,8 @@ class CabinetController extends Controller
     public function addRecipientTemplate()
     {
         if ($r = $this->checkAuth()) return $r;
-        return view('cabinet.recipient_templates.add');
+        $cities = CityDelivery::orderBy('title')->get(['id', 'title']);
+        return view('cabinet.recipient_templates.add', compact('cities'));
     }
 
     public function saveRecipientTemplate(Request $request)
@@ -381,7 +384,7 @@ class CabinetController extends Controller
             'recipient_phone' => $request->input('recipient_phone'),
             'company' => $request->input('company'),
             'city' => $request->input('city'),
-            'country' => $request->input('country'),
+            'country' => 'Казахстан',
             'region' => $request->input('region'),
             'district' => $request->input('district'),
             'address' => $request->input('address'),
@@ -393,7 +396,8 @@ class CabinetController extends Controller
     {
         if ($r = $this->checkAuth()) return $r;
         $template = RecipientTemplate::findOrFail($id);
-        return view('cabinet.recipient_templates.edit', compact('template'));
+        $cities = CityDelivery::orderBy('title')->get(['id', 'title']);
+        return view('cabinet.recipient_templates.edit', compact('template', 'cities'));
     }
 
     public function updateRecipientTemplate(Request $request)
@@ -404,7 +408,7 @@ class CabinetController extends Controller
             'recipient_phone' => $request->input('recipient_phone'),
             'company' => $request->input('company'),
             'city' => $request->input('city'),
-            'country' => $request->input('country'),
+            'country' => 'Казахстан',
             'region' => $request->input('region'),
             'district' => $request->input('district'),
             'address' => $request->input('address'),

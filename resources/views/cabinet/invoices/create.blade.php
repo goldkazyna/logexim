@@ -51,11 +51,11 @@ h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; bo
                     </div>
                     <div class="mb-4">
                         <label for="sender-city" class="text-gray-800 font-bold text-base inline-block mb-2">Город</label>
-                        <input type="text" id="sender-city" name="sender_city" class="form-input w-full md:w-1/2" value="{{ $user->city }}" placeholder="Введите город отправителя" required>
+                        @include('partials.city-select', ['id' => 'sender-city', 'name' => 'sender_city', 'selected' => $user->city, 'cities' => $cities])
                     </div>
                     <div class="mb-4">
                         <label for="sender-country" class="text-gray-800 font-bold text-base inline-block mb-2">Страна</label>
-                        <input type="text" id="sender-country" name="sender_country" class="form-input w-full md:w-1/2" value="{{ $user->country }}" placeholder="Введите страну отправителя" required>
+                        <input type="text" id="sender-country" name="sender_country" class="form-input w-full md:w-1/2 bg-gray-100" value="Казахстан" readonly tabindex="-1">
                     </div>
                     <div class="mb-4">
                         <label for="sender-region" class="text-gray-800 font-bold text-base inline-block mb-2">Область</label>
@@ -88,11 +88,11 @@ h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; bo
                     </div>
                     <div class="mb-4">
                         <label for="recipient-city" class="text-gray-800 font-bold text-base inline-block mb-2">Город</label>
-                        <input type="text" id="recipient-city" name="recipient_city" class="form-input w-full md:w-1/2" placeholder="Введите город получателя" required>
+                        @include('partials.city-select', ['id' => 'recipient-city', 'name' => 'recipient_city', 'selected' => '', 'cities' => $cities])
                     </div>
                     <div class="mb-4">
                         <label for="recipient-country" class="text-gray-800 font-bold text-base inline-block mb-2">Страна</label>
-                        <input type="text" id="recipient-country" name="recipient_country" class="form-input w-full md:w-1/2" value="Казахстан" placeholder="Введите страну получателя" required>
+                        <input type="text" id="recipient-country" name="recipient_country" class="form-input w-full md:w-1/2 bg-gray-100" value="Казахстан" readonly tabindex="-1">
                     </div>
                     <div class="mb-4">
                         <label for="recipient-region" class="text-gray-800 font-bold text-base inline-block mb-2">Область</label>
