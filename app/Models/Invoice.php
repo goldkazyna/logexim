@@ -9,6 +9,14 @@ class Invoice extends Model
     protected $table = 'invoices';
     public $timestamps = false;
 
+    protected static function booted(): void
+    {
+        // При создании накладной автоматически назначаем курьеров по городам.
+        static::created(function (self $invoice) {
+            app(\App\Services\CourierAssigner::class)->assign($invoice);
+        });
+    }
+
     public const DETAIL_STATUSES = [
         0 => 'Заявка создана',
         1 => 'Назначен курьер',
