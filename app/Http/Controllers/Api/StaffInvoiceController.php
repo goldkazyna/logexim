@@ -164,14 +164,25 @@ class StaffInvoiceController extends Controller
 
         $relativePath = $this->saveSignatureAsWebp($invoice->id, $decoded);
 
-        $invoice->update([
-            'pickup_signature' => $relativePath,
-            'detail_status' => 2,
-            'courier_id' => $staff->id, // закрепляем забравшего курьера
-        ]);
+        // Доставка внутри одного города — склад не нужен: тот же курьер, что
+        // забрал, сразу и доставляет. Прыгаем сразу к этапу «У курьера в
+        // пункте назначения», минуя склад и передачу принимающему курьеру.
+        $isLocal = $this->sameCity($invoice->sender_city, $invoice->recipient_city);
+        $to = $isLocal ? 5 : 2;
 
-        $this->logEvent($invoice, $staff, 'pickup', $from, 2, [
+        $update = [
+            'pickup_signature' => $relativePath,
+            'detail_status' => $to,
+            'courier_id' => $staff->id, // закрепляем забравшего курьера
+        ];
+        if ($isLocal) {
+            $update['receiving_courier_id'] = $staff->id; // он же доставит
+        }
+        $invoice->update($update);
+
+        $this->logEvent($invoice, $staff, 'pickup', $from, $to, [
             'signature_path' => $relativePath,
+            'local' => $isLocal,
         ], $role);
 
         return response()->json([
@@ -668,6 +679,15 @@ class StaffInvoiceController extends Controller
         }
 
         return rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
+    }
+
+    /** Один и тот же город (без учёта регистра и пробелов). */
+    private function sameCity(?string $a, ?string $b): bool
+    {
+        $a = mb_strtolower(trim((string) $a));
+        $b = mb_strtolower(trim((string) $b));
+
+        return $a !== '' && $a === $b;
     }
 
     private function composeAddress(?string $address, ?string $city, ?string $region, ?string $country): string
