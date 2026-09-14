@@ -101,7 +101,24 @@ class StaffInvoiceController extends Controller
             return response()->json(['message' => 'Накладная не найдена'], 404);
         }
 
-        return response()->json(['invoice' => $this->present($invoice, full: true)]);
+        $data = $this->present($invoice, full: true);
+
+        // Приложение выбирает экран после сканирования по courier_id /
+        // receiving_courier_id. Курьеров заранее не назначают, поэтому для
+        // сканирующего курьера подставляем его самого на нужном этапе — тогда
+        // приложение сразу ведёт на «Забрал + подпись». В БД ничего не меняем:
+        // закрепление произойдёт при подтверждении забора.
+        if (Staff::isCourierRoleName($role)) {
+            $detail = (int) $invoice->detail_status;
+            if ($detail <= 1 && empty($invoice->courier_id)) {
+                $data['courier_id'] = (int) $staff->id;
+            }
+            if ($detail === 4 && empty($invoice->receiving_courier_id)) {
+                $data['receiving_courier_id'] = (int) $staff->id;
+            }
+        }
+
+        return response()->json(['invoice' => $data]);
     }
 
     private function courierCanAccess(Invoice $invoice, $staff): bool
