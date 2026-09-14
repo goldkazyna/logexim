@@ -29,6 +29,28 @@ class Invoice extends Model
      * Отличаются от операционных DETAIL_STATUSES (их видят курьер, кладовщик
      * и админка) — здесь язык для получателя груза.
      */
+    /** Клиентские этапы для доставки внутри одного города (без склада). */
+    public const LOCAL_DETAIL_STATUSES = [
+        0 => 'Заявка создана',
+        1 => 'Курьер забрал груз',
+        2 => 'Доставлен',
+    ];
+
+    /** Доставка внутри одного города — склад не задействован. */
+    public function isLocalDelivery(): bool
+    {
+        $a = mb_strtolower(trim((string) $this->sender_city));
+        $b = mb_strtolower(trim((string) $this->recipient_city));
+
+        return $a !== '' && $a === $b;
+    }
+
+    /** Позиция в короткой локальной цепочке (0..2) по общему detail_status. */
+    private function localStagePos(int $detail): int
+    {
+        return $detail >= 6 ? 2 : ($detail >= 2 ? 1 : 0);
+    }
+
     public const PUBLIC_DETAIL_STATUSES = [
         0 => 'Заявка создана',
         1 => 'Выведен на доставку',
@@ -108,7 +130,9 @@ class Invoice extends Model
                 : $this->buildSteps(array_slice(self::STATUSES, 0, 4, true), $status),
             'detail_steps' => $cancelled || $detail <= 0
                 ? []
-                : $this->buildSteps(self::PUBLIC_DETAIL_STATUSES, $detail),
+                : ($this->isLocalDelivery()
+                    ? $this->buildSteps(self::LOCAL_DETAIL_STATUSES, $this->localStagePos($detail))
+                    : $this->buildSteps(self::PUBLIC_DETAIL_STATUSES, $detail)),
         ];
     }
 

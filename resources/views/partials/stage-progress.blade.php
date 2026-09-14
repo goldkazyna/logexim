@@ -1,10 +1,15 @@
-{{-- Полоса прогресса этапа доставки (0..6). Параметр: $stage. --}}
-@php $labels = \App\Models\Invoice::DETAIL_STATUSES; $cur = max(0, min(6, (int) $stage)); @endphp
+{{-- Полоса прогресса этапа доставки.
+     Параметры: $labels (список названий этапов), $current (индекс текущего). --}}
+@php
+    $labels = array_values($labels);
+    $last = count($labels) - 1;
+    $cur = max(0, min($last, (int) $current));
+@endphp
 <div class="stage-prog">
     <div class="stage-prog__dots">
-        @for($i = 0; $i <= 6; $i++)
+        @foreach($labels as $i => $label)
             <span class="stage-prog__dot {{ $i < $cur ? 'done' : ($i === $cur ? 'cur' : '') }}"></span>
-        @endfor
+        @endforeach
     </div>
     <div class="stage-prog__label">{{ $labels[$cur] ?? '' }}</div>
 </div>

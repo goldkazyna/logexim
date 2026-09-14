@@ -165,4 +165,37 @@ class InvoicePublicTrackingTest extends TestCase
         $this->assertIsArray($tracking['stage_times']);
         $this->assertArrayNotHasKey(3, $tracking['stage_times']);
     }
+
+    public function test_local_delivery_uses_short_chain_without_warehouse(): void
+    {
+        // Один город, курьер забрал (detail 5) — короткая цепочка без склада.
+        $tracking = $this->invoice([
+            'sender_city' => 'Алматы', 'recipient_city' => 'Алматы',
+            'status' => 2, 'detail_status' => 5,
+        ])->publicTracking();
+
+        $titles = array_column($tracking['detail_steps'], 'title');
+        $this->assertSame(['Заявка создана', 'Курьер забрал груз', 'Доставлен'], $titles);
+        $this->assertSame(['done', 'current', 'pending'], $this->states($tracking['detail_steps']));
+    }
+
+    public function test_local_delivered_is_fully_done(): void
+    {
+        $tracking = $this->invoice([
+            'sender_city' => 'Алматы', 'recipient_city' => 'алматы',
+            'status' => 3, 'detail_status' => 6,
+        ])->publicTracking();
+
+        $this->assertSame(array_fill(0, 3, 'done'), $this->states($tracking['detail_steps']));
+    }
+
+    public function test_intercity_keeps_full_chain(): void
+    {
+        $tracking = $this->invoice([
+            'sender_city' => 'Алматы', 'recipient_city' => 'Астана',
+            'status' => 1, 'detail_status' => 3,
+        ])->publicTracking();
+
+        $this->assertCount(7, $tracking['detail_steps']);
+    }
 }
