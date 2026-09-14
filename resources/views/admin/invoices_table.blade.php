@@ -1,10 +1,12 @@
 @php
     $showCourier = array_intersect($panelRoles, ['admin', 'dispatcher']) !== [];
-    $canChangeStatus = $showCourier;
+    // Этап для полосы прогресса: есть детальный — по нему; нет — выводим из
+    // административного статуса (у старых накладных detail_status = 0).
+    $stageByStatus = [0 => 0, 1 => 1, 2 => 4, 3 => 6, 4 => 0];
 @endphp
 <table>
     <thead>
-        <tr><th>№</th><th>Дата</th><th>ИИН/БИН</th><th>Отправитель</th><th>Получатель</th>@if($showCourier)<th>Курьер</th>@endif<th>Вес</th><th>Статус</th><th>Этап</th><th>Действие</th></tr>
+        <tr><th>№</th><th>Дата</th><th>ИИН/БИН</th><th>Отправитель</th><th>Получатель</th>@if($showCourier)<th>Курьер</th>@endif<th>Вес</th><th>Этап доставки</th><th>Действие</th></tr>
     </thead>
     <tbody>
     @forelse($invoices as $inv)
@@ -19,25 +21,17 @@
         @endif
         <td>{{ $inv->weight }}</td>
         <td>
-            @if($canChangeStatus)
-            <button type="button" class="status-badge s-{{ $inv->status }}" onclick="openStatusModal({{ $inv->id }}, {{ $inv->status }}, '{{ $inv->invoice_number }}')">
+            @if((int) $inv->status === 4)
+                <span class="stage-cancelled">Отменена</span>
             @else
-            <span class="status-badge s-{{ $inv->status }}" style="cursor:default">
+                @php $stage = (int) $inv->detail_status > 0 ? (int) $inv->detail_status : ($stageByStatus[(int) $inv->status] ?? 0); @endphp
+                @include('partials.stage-progress', ['stage' => $stage])
             @endif
-                @switch($inv->status)
-                    @case(0) Заявка создана @break
-                    @case(1) Принята в работу @break
-                    @case(2) Отправлено @break
-                    @case(3) Исполнена @break
-                    @case(4) Отменена @break
-                @endswitch
-            @if($canChangeStatus)</button>@else</span>@endif
         </td>
-        <td><small>{{ $inv->detailStatusLabel() }}</small></td>
         <td><a href="/admin/invoices/view/{{ $inv->id }}" target="_blank" class="btn btn-sm btn-primary">Просмотр</a></td>
     </tr>
     @empty
-    <tr><td colspan="{{ $showCourier ? 10 : 9 }}" style="text-align:center;padding:20px;color:#888">Накладные не найдены</td></tr>
+    <tr><td colspan="{{ $showCourier ? 9 : 8 }}" style="text-align:center;padding:20px;color:#888">Накладные не найдены</td></tr>
     @endforelse
     </tbody>
 </table>

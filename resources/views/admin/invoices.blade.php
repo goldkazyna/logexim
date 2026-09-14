@@ -2,25 +2,13 @@
 @section('title', 'Накладные')
 @push('styles')
 <style>
-    .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; color: #fff; font-weight: 600; display: inline-block; min-width: 130px; text-align: center; cursor: pointer; border: none; transition: opacity 0.2s; }
-    .status-badge:hover { opacity: 0.85; }
-    .s-0 { background: #00056d; }
-    .s-1 { background: #ffcc00; color: #333; }
-    .s-2 { background: #00aaff; }
-    .s-3 { background: #28a745; }
-    .s-4 { background: #dc3545; }
-
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: #fff; border-radius: 12px; padding: 25px; width: 360px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
-    .modal-box h3 { margin: 0 0 8px; font-size: 18px; }
-    .modal-box .modal-subtitle { color: #888; font-size: 13px; margin-bottom: 20px; }
-    .modal-box .status-option { display: block; width: 100%; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; border: 2px solid #eee; background: #fff; cursor: pointer; font-size: 14px; font-weight: 600; text-align: left; transition: all 0.15s; }
-    .modal-box .status-option:hover { border-color: #D0171C; transform: scale(1.02); }
-    .modal-box .status-option.current { border-color: #D0171C; background: #fff5f5; }
-    .modal-box .status-option .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; }
-    .modal-box .btn-close-modal { margin-top: 10px; width: 100%; padding: 10px; background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; color: #666; }
-    .modal-box .btn-close-modal:hover { background: #e0e0e0; }
+    /* Полоса прогресса этапа доставки */
+    .stage-prog__dots { display: flex; align-items: center; gap: 4px; }
+    .stage-prog__dot { width: 10px; height: 10px; border-radius: 50%; background: #e2e5ea; display: block; }
+    .stage-prog__dot.done { background: #16a34a; }
+    .stage-prog__dot.cur { background: #d0171c; box-shadow: 0 0 0 3px rgba(208,23,28,.18); }
+    .stage-prog__label { font-size: 12px; color: #555; margin-top: 5px; }
+    .stage-cancelled { display: inline-block; font-size: 12px; font-weight: 600; color: #dc3545; background: #fdecec; padding: 4px 12px; border-radius: 999px; }
 
     .pagination-wrapper { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 20px; flex-wrap: wrap; }
     .pagination-wrapper .page-link { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; padding: 0 10px; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; color: #333; font-size: 14px; background: #fff; transition: all 0.2s; }
@@ -49,42 +37,9 @@
         </div>
     </div>
 </div>
-
-<!-- Модалка смены статуса -->
-<div class="modal-overlay" id="statusModal">
-    <div class="modal-box">
-        <h3>Изменить статус</h3>
-        <div class="modal-subtitle">Накладная №<span id="modal-inv-num"></span></div>
-        <form id="statusForm" method="post">
-            @csrf
-            <button type="submit" name="status" value="0" class="status-option" data-status="0"><span class="dot" style="background:#00056d"></span>Заявка создана</button>
-            <button type="submit" name="status" value="1" class="status-option" data-status="1"><span class="dot" style="background:#ffcc00"></span>Принята в работу</button>
-            <button type="submit" name="status" value="2" class="status-option" data-status="2"><span class="dot" style="background:#00aaff"></span>Отправлено</button>
-            <button type="submit" name="status" value="3" class="status-option" data-status="3"><span class="dot" style="background:#28a745"></span>Исполнена</button>
-            <button type="submit" name="status" value="4" class="status-option" data-status="4"><span class="dot" style="background:#dc3545"></span>Отменена</button>
-        </form>
-        <button class="btn-close-modal" onclick="closeStatusModal()">Отмена</button>
-    </div>
-</div>
 @endsection
 @push('scripts')
 <script>
-function openStatusModal(id, currentStatus, invNum) {
-    document.getElementById('statusForm').action = '/admin/invoices/status/' + id;
-    document.getElementById('modal-inv-num').textContent = invNum;
-    document.querySelectorAll('.status-option').forEach(function(btn) {
-        btn.classList.remove('current');
-        if (parseInt(btn.dataset.status) === currentStatus) btn.classList.add('current');
-    });
-    document.getElementById('statusModal').classList.add('active');
-}
-function closeStatusModal() {
-    document.getElementById('statusModal').classList.remove('active');
-}
-document.getElementById('statusModal').addEventListener('click', function(e) {
-    if (e.target === this) closeStatusModal();
-});
-
 function loadInvoices() {
     var data = {};
     var search = $('#invoice-search').val();
