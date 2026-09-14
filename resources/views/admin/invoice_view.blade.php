@@ -185,7 +185,13 @@
             @if($canEdit)
             <input type="date" name="fact_date" class="inv-edit-input" value="{{ $invoice->fact_date }}" form="edit-invoice-form" style="width:180px">
             @else
-            {{ $invoice->fact_date ?: '—' }}
+            @if($invoice->delivered_at)
+                {{ \Carbon\Carbon::parse($invoice->delivered_at)->format('d.m.Y H:i') }}
+            @elseif($invoice->fact_date)
+                {{ \Carbon\Carbon::parse($invoice->fact_date)->format('d.m.Y') }}
+            @else
+                —
+            @endif
             @endif
         </div></div>
 

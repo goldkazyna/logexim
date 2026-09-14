@@ -325,6 +325,7 @@ class StaffInvoiceController extends Controller
         $invoice->update([
             'delivery_signature' => $relativePath,
             'delivered_at' => now(),
+            'fact_date' => now(), // фактическая дата доставки
             'detail_status' => 6,
             'status' => 3, // Исполнена
         ]);

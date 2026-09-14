@@ -256,7 +256,12 @@ class AdminController extends Controller
         $invoice = Invoice::findOrFail($id);
         $oldStatus = (int) $invoice->status;
         $newStatus = (int) $request->input('status');
-        $invoice->update(['status' => $newStatus]);
+        $changes = ['status' => $newStatus];
+        // Статус «Исполнена» — фиксируем фактическую дату доставки, если её ещё нет.
+        if ($newStatus === 3 && empty($invoice->fact_date)) {
+            $changes['fact_date'] = now();
+        }
+        $invoice->update($changes);
         if ($oldStatus !== $newStatus) {
             $this->logAdminEvent($invoice, 'status_changed', null, null, [
                 'from_status' => $oldStatus,
