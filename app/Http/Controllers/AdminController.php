@@ -230,6 +230,26 @@ class AdminController extends Controller
         return view('admin.invoice_view', compact('invoice', 'couriers', 'agents'));
     }
 
+    // Печать накладной / сохранение в PDF — та же форма, что в кабинете клиента.
+    public function printInvoice($id)
+    {
+        if ($r = $this->checkAuth(array_merge(['admin', 'dispatcher'], Staff::COURIER_ROLES))) return $r;
+        $invoice = Invoice::findOrFail($id);
+
+        // Курьер и агент печатают только свои накладные.
+        $sessionRoles = self::sessionRoles();
+        $isFieldStaff = !in_array('dispatcher', $sessionRoles, true)
+            && array_filter($sessionRoles, fn ($r) => Staff::isCourierRoleName($r)) !== [];
+        if ($isFieldStaff) {
+            $staffId = (int) session('staff_id');
+            if ((int) $invoice->courier_id !== $staffId && (int) $invoice->receiving_courier_id !== $staffId) {
+                return redirect('/admin/invoices');
+            }
+        }
+
+        return view('cabinet.invoices.print', compact('invoice'));
+    }
+
     public function updateInvoiceStatus(Request $request, $id)
     {
         if ($r = $this->checkAuth(['admin', 'dispatcher'])) return $r;

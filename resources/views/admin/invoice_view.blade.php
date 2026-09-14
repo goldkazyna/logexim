@@ -10,6 +10,8 @@
     .inv-back a { color: #D0171C; text-decoration: none; font-weight: 600; }
     .inv-back a:hover { text-decoration: underline; }
     .inv-edit-input { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 14px; font-weight: 600; width: 150px; }
+    .inv-print-btn { display:inline-flex; align-items:center; gap:8px; background:#fff; color:#D0171C; border:1px solid #D0171C; border-radius:8px; padding:8px 18px; font-size:14px; font-weight:600; text-decoration:none; transition:.15s; }
+    .inv-print-btn:hover { background:#D0171C; color:#fff; }
     .inv-save-btn { background: #D0171C; color: #fff; border: none; border-radius: 6px; padding: 8px 24px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px; }
     .inv-save-btn:hover { background: #a01215; }
     .inv-success { color: #28a745; font-weight: 600; margin-left: 10px; display: none; }
@@ -20,7 +22,12 @@
     $canEdit = array_intersect($panelRoles, ['admin', 'dispatcher']) !== [];
     $statusLabels = [0=>'Заявка создана', 1=>'Принята в работу', 2=>'Отправлено', 3=>'Исполнена', 4=>'Отменена'];
 @endphp
-<div class="inv-back"><a href="/admin/invoices">&larr; Назад к списку</a></div>
+<div class="inv-back" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <a href="/admin/invoices">&larr; Назад к списку</a>
+    <a href="/admin/invoices/print/{{ $invoice->id }}" target="_blank" class="inv-print-btn">
+        <i class="fas fa-print"></i> Печать / PDF
+    </a>
+</div>
 <div class="card">
     <div class="card-header">Накладная № {{ $invoice->invoice_number }}</div>
     <div class="card-body">
