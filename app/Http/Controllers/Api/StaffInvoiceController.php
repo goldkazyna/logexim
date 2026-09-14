@@ -80,9 +80,8 @@ class StaffInvoiceController extends Controller
 
         $invoice = Invoice::with(['courier', 'warehouse', 'receivingCourier', 'events'])->findOrFail($id);
 
-        if (Staff::isCourierRoleName($role) && !$this->courierCanAccess($invoice, $staff)) {
-            return response()->json(['message' => 'Нет доступа'], 403);
-        }
+        // Курьера заранее не назначают — любой полевой сотрудник открывает
+        // накладную по сканированию ярлыка; закрепление происходит при заборе.
 
         return response()->json(['invoice' => $this->present($invoice, full: true)]);
     }
@@ -100,9 +99,6 @@ class StaffInvoiceController extends Controller
 
         if (!$invoice) {
             return response()->json(['message' => 'Накладная не найдена'], 404);
-        }
-        if (Staff::isCourierRoleName($role) && !$this->courierCanAccess($invoice, $staff)) {
-            return response()->json(['message' => 'Накладная не назначена вам'], 403);
         }
 
         return response()->json(['invoice' => $this->present($invoice, full: true)]);
@@ -128,8 +124,10 @@ class StaffInvoiceController extends Controller
         if (!Staff::isCourierRoleName($role)) {
             return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
-        if ((int) $invoice->courier_id !== (int) $staff->id) {
-            return response()->json(['message' => 'Накладная не назначена вам'], 403);
+        // Курьера заранее не назначают: кто первым забрал — за тем и закрепляем.
+        $assigned = (int) $invoice->courier_id;
+        if ($assigned !== 0 && $assigned !== (int) $staff->id) {
+            return response()->json(['message' => 'Накладную уже забрал другой курьер'], 403);
         }
 
         // State machine: забор возможен только из состояний «Заявка создана» или «Назначен курьер»
@@ -152,6 +150,7 @@ class StaffInvoiceController extends Controller
         $invoice->update([
             'pickup_signature' => $relativePath,
             'detail_status' => 2,
+            'courier_id' => $staff->id, // закрепляем забравшего курьера
         ]);
 
         $this->logEvent($invoice, $staff, 'pickup', $from, 2, [
@@ -264,8 +263,10 @@ class StaffInvoiceController extends Controller
         if (!Staff::isCourierRoleName($role)) {
             return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
-        if ((int) $invoice->receiving_courier_id !== (int) $staff->id) {
-            return response()->json(['message' => 'Вы не назначены принимающим курьером этой накладной'], 403);
+        // Принимающего заранее не назначают: кто первым принял — за тем и закрепляем.
+        $assignedRecv = (int) $invoice->receiving_courier_id;
+        if ($assignedRecv !== 0 && $assignedRecv !== (int) $staff->id) {
+            return response()->json(['message' => 'Накладную уже принял другой курьер'], 403);
         }
 
         $from = (int) $invoice->detail_status;
@@ -278,7 +279,10 @@ class StaffInvoiceController extends Controller
             ], 422);
         }
 
-        $invoice->update(['detail_status' => 5]);
+        $invoice->update([
+            'detail_status' => 5,
+            'receiving_courier_id' => $staff->id, // закрепляем принявшего курьера
+        ]);
         $this->logEvent($invoice, $staff, 'destination_pickup', $from, 5, [], $role);
 
         return response()->json([
@@ -301,8 +305,9 @@ class StaffInvoiceController extends Controller
         if (!Staff::isCourierRoleName($role)) {
             return response()->json(['message' => 'Действие доступно только курьеру или агенту'], 403);
         }
-        if ((int) $invoice->receiving_courier_id !== (int) $staff->id) {
-            return response()->json(['message' => 'Вы не назначены принимающим курьером этой накладной'], 403);
+        $assignedRecv = (int) $invoice->receiving_courier_id;
+        if ($assignedRecv !== 0 && $assignedRecv !== (int) $staff->id) {
+            return response()->json(['message' => 'Накладную ведёт другой курьер'], 403);
         }
 
         $from = (int) $invoice->detail_status;
@@ -328,6 +333,7 @@ class StaffInvoiceController extends Controller
             'fact_date' => now(), // фактическая дата доставки
             'detail_status' => 6,
             'status' => 3, // Исполнена
+            'receiving_courier_id' => $staff->id, // закрепляем курьера, если ещё не закреплён
         ]);
 
         $this->logEvent($invoice, $staff, 'delivery', $from, 6, [

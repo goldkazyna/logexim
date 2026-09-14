@@ -297,44 +297,14 @@ class AdminController extends Controller
             $data['payment'] = $request->input('payment');
         }
 
-        $courierId = $request->input('courier_id');
-        $courierId = $courierId !== '' && $courierId !== null ? (int) $courierId : null;
-        $data['courier_id'] = $courierId;
-
-        $receivingCourierId = $request->input('receiving_courier_id');
-        $receivingCourierId = $receivingCourierId !== '' && $receivingCourierId !== null
-            ? (int) $receivingCourierId : null;
-        $data['receiving_courier_id'] = $receivingCourierId;
-
-        $oldReceivingCourierId = $invoice->receiving_courier_id ? (int) $invoice->receiving_courier_id : null;
+        // Курьеров через админку не назначают — они закрепляются сами при
+        // сканировании. Поля courier_id / receiving_courier_id здесь не трогаем.
 
         $detail = $request->input('detail_status');
         $data['detail_status'] = $detail !== null && $detail !== '' ? (int) $detail : 0;
 
-        // Автосмена: если назначили курьера и detail ещё «Заявка создана» — ставим «Назначен курьер»
-        if ($courierId && $oldCourierId !== $courierId && $data['detail_status'] === 0) {
-            $data['detail_status'] = 1;
-        }
-
         $invoice->update($data);
 
-        // Логируем значимые изменения
-        if ($oldCourierId !== $courierId) {
-            $courierName = $courierId ? optional(Staff::find($courierId))->full_name : null;
-            $this->logAdminEvent($invoice, 'courier_assigned', null, null, [
-                'from_courier_id' => $oldCourierId,
-                'to_courier_id' => $courierId,
-                'courier_name' => $courierName,
-            ]);
-        }
-        if ($oldReceivingCourierId !== $receivingCourierId) {
-            $rcName = $receivingCourierId ? optional(Staff::find($receivingCourierId))->full_name : null;
-            $this->logAdminEvent($invoice, 'receiving_courier_assigned', null, null, [
-                'from_courier_id' => $oldReceivingCourierId,
-                'to_courier_id' => $receivingCourierId,
-                'courier_name' => $rcName,
-            ]);
-        }
         if ($oldDetail !== (int) $data['detail_status']) {
             $this->logAdminEvent($invoice, 'detail_changed', $oldDetail, (int) $data['detail_status']);
         }

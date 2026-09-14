@@ -62,44 +62,10 @@
             {{ $invoice->detailStatusLabel() }}
             @endif
         </div></div>
-        @if($canEdit)
-        @php
-            // Назначить можно и курьера, и агента — разница только в том, кто идёт первым.
-            $pickupGroups   = ['Курьеры' => $couriers, 'Агенты' => $agents];
-            $receiveGroups  = ['Агенты' => $agents, 'Курьеры' => $couriers];
-        @endphp
-        <div class="inv-row"><div class="label">Курьер (отправка):</div><div class="value">
-            <select name="courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
-                <option value="">— не назначен —</option>
-                @foreach($pickupGroups as $groupLabel => $group)
-                    @if($group->isNotEmpty())
-                    <optgroup label="{{ $groupLabel }}">
-                        @foreach($group as $c)
-                            <option value="{{ $c->id }}" @if($invoice->courier_id == $c->id) selected @endif>{{ $c->full_name }}@if(!$c->active) (отключен)@endif</option>
-                        @endforeach
-                    </optgroup>
-                    @endif
-                @endforeach
-            </select>
-        </div></div>
-        <div class="inv-row"><div class="label">Курьер (приём в пункте):</div><div class="value">
-            <select name="receiving_courier_id" class="inv-edit-input" form="edit-invoice-form" style="width:260px">
-                <option value="">— не назначен —</option>
-                @foreach($receiveGroups as $groupLabel => $group)
-                    @if($group->isNotEmpty())
-                    <optgroup label="{{ $groupLabel }}">
-                        @foreach($group as $c)
-                            <option value="{{ $c->id }}" @if($invoice->receiving_courier_id == $c->id) selected @endif>{{ $c->full_name }}@if(!$c->active) (отключен)@endif</option>
-                        @endforeach
-                    </optgroup>
-                    @endif
-                @endforeach
-            </select>
-        </div></div>
-        @else
-        <div class="inv-row"><div class="label">Курьер (отправка):</div><div class="value">{{ optional($invoice->courier)->full_name ?: '—' }}</div></div>
-        <div class="inv-row"><div class="label">Курьер (приём в пункте):</div><div class="value">{{ optional($invoice->receivingCourier)->full_name ?: '—' }}</div></div>
-        @endif
+        {{-- Курьеров заранее не назначают: кто отсканировал накладную, тот и
+             закрепляется автоматически. Здесь показываем, кто уже взял. --}}
+        <div class="inv-row"><div class="label">Курьер (отправка):</div><div class="value">{{ optional($invoice->courier)->full_name ?: '— заберёт любой курьер —' }}</div></div>
+        <div class="inv-row"><div class="label">Курьер (приём в пункте):</div><div class="value">{{ optional($invoice->receivingCourier)->full_name ?: '— примет любой курьер —' }}</div></div>
 
         <div class="inv-section">Отправитель</div>
         <div class="inv-row"><div class="label">ФИО отправителя:</div><div class="value">{{ $invoice->sender_name }}</div></div>
