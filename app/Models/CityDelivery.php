@@ -9,5 +9,5 @@ class CityDelivery extends Model
     protected $table = 'city_delivery';
     public $timestamps = false;
 
-    protected $fillable = ['title'];
+    protected $fillable = ['title', 'zone'];
 }

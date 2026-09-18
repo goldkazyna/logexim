@@ -167,7 +167,7 @@ class StaffInvoiceController extends Controller
         // Доставка внутри одного города — склад не нужен: тот же курьер, что
         // забрал, сразу и доставляет. Прыгаем сразу к этапу «У курьера в
         // пункте назначения», минуя склад и передачу принимающему курьеру.
-        $isLocal = $this->sameCity($invoice->sender_city, $invoice->recipient_city);
+        $isLocal = $invoice->isLocalDelivery();
         $to = $isLocal ? 5 : 2;
 
         $update = [
@@ -603,6 +603,7 @@ class StaffInvoiceController extends Controller
             'status' => (int) $inv->status,
             'detail_status' => $detailStatus,
             'detail_status_label' => Invoice::DETAIL_STATUSES[$detailStatus] ?? '',
+            'local' => $inv->isLocalDelivery(),
             'status_key' => $statusKey,
             'created_at' => $createdAt,
             'courier_id' => $inv->courier_id ? (int) $inv->courier_id : null,
@@ -679,15 +680,6 @@ class StaffInvoiceController extends Controller
         }
 
         return rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
-    }
-
-    /** Один и тот же город (без учёта регистра и пробелов). */
-    private function sameCity(?string $a, ?string $b): bool
-    {
-        $a = mb_strtolower(trim((string) $a));
-        $b = mb_strtolower(trim((string) $b));
-
-        return $a !== '' && $a === $b;
     }
 
     private function composeAddress(?string $address, ?string $city, ?string $region, ?string $country): string

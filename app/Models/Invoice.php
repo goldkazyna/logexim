@@ -36,13 +36,35 @@ class Invoice extends Model
         2 => 'Доставлен',
     ];
 
-    /** Доставка внутри одного города — склад не задействован. */
+    /**
+     * Доставка без склада: тот же город или одна зона доставки.
+     * Города с одинаковой непустой зоной (city_delivery.zone) — одна область.
+     */
     public function isLocalDelivery(): bool
     {
         $a = mb_strtolower(trim((string) $this->sender_city));
         $b = mb_strtolower(trim((string) $this->recipient_city));
 
-        return $a !== '' && $a === $b;
+        if ($a === '') {
+            return false;
+        }
+        if ($a === $b) {
+            return true;
+        }
+
+        // Разные города — сверяем зоны. Справочник маленький, читаем целиком.
+        $zones = [];
+        foreach (CityDelivery::select('title', 'zone')->get() as $city) {
+            $zone = mb_strtolower(trim((string) $city->zone));
+            if ($zone !== '') {
+                $zones[mb_strtolower(trim((string) $city->title))] = $zone;
+            }
+        }
+
+        $za = $zones[$a] ?? '';
+        $zb = $zones[$b] ?? '';
+
+        return $za !== '' && $za === $zb;
     }
 
     /** Позиция в короткой локальной цепочке (0..2) по общему detail_status. */

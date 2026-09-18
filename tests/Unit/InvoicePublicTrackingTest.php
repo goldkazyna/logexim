@@ -3,10 +3,13 @@
 namespace Tests\Unit;
 
 use App\Models\Invoice;
-use PHPUnit\Framework\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class InvoicePublicTrackingTest extends TestCase
 {
+    use RefreshDatabase;
+
     private function invoice(array $attributes = []): Invoice
     {
         return new Invoice(array_merge([

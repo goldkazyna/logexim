@@ -92,6 +92,7 @@ Route::get('/admin/pages/edit/{id}', [AdminController::class, 'editPage']);
 Route::post('/admin/pages/update/{id}', [AdminController::class, 'updatePage']);
 Route::get('/admin/cities', [AdminController::class, 'cities']);
 Route::post('/admin/cities/store', [AdminController::class, 'storeCity']);
+Route::post('/admin/cities/{id}/update', [AdminController::class, 'updateCity'])->whereNumber('id');
 Route::get('/admin/cities/delete/{id}', [AdminController::class, 'deleteCity']);
 Route::get('/admin/tariffs/{type}', [AdminController::class, 'tariffs'])->where('type', 'avto|avia|zh');
 Route::post('/admin/tariffs/{type}/store', [AdminController::class, 'storeTariff'])->where('type', 'avto|avia|zh');

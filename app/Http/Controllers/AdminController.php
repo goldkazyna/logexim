@@ -151,25 +151,24 @@ class AdminController extends Controller
         if ($showCourier) {
             $newInvoices->load('courier');
         }
+        // Строки той же структуры, что и в invoices_table (этап — полосой,
+        // без колонки «Статус»), чтобы вставляемые поллером строки совпадали.
         $html = '';
         foreach ($newInvoices as $inv) {
-            $date = \Carbon\Carbon::parse($inv->date)->format('d.m.Y');
-            $statuses = [0=>'Заявка создана',1=>'Принята в работу',2=>'Отправлено',3=>'Исполнена',4=>'Отменена'];
-            $statusText = $statuses[$inv->status] ?? '';
+            $date = \Carbon\Carbon::parse($inv->date)->format('d.m.Y H:i');
             $courierCell = $showCourier
                 ? '<td>' . e(optional($inv->courier)->full_name ?: '—') . '</td>'
                 : '';
-            $detailText = Invoice::DETAIL_STATUSES[$inv->detail_status] ?? '—';
+            $stageCell = view('partials.invoice-stage-cell', ['inv' => $inv])->render();
             $html .= '<tr style="background:#fff8e1;animation:fadeIn 0.5s">'
                 . '<td>' . $inv->invoice_number . '</td>'
                 . '<td>' . $date . '</td>'
-                . '<td>—</td>'
+                . '<td>' . e($inv->user->bin ?? '—') . '</td>'
                 . '<td>' . e($inv->sender_company) . '<br><small>' . e($inv->sender_name) . '</small></td>'
                 . '<td>' . e($inv->recipient_company) . '<br><small>' . e($inv->recipient_name) . '</small></td>'
                 . $courierCell
                 . '<td>' . $inv->weight . '</td>'
-                . '<td><button type="button" class="status-badge s-' . $inv->status . '" onclick="openStatusModal(' . $inv->id . ',' . $inv->status . ',\'' . $inv->invoice_number . '\')">' . $statusText . '</button></td>'
-                . '<td><small>' . e($detailText) . '</small></td>'
+                . '<td>' . $stageCell . '</td>'
                 . '<td><a href="/admin/invoices/view/' . $inv->id . '" class="btn btn-sm btn-primary">Просмотр</a></td>'
                 . '</tr>';
         }
@@ -472,8 +471,21 @@ class AdminController extends Controller
     public function storeCity(Request $request)
     {
         if ($r = $this->checkAuth()) return $r;
-        CityDelivery::create(['title' => $request->input('title')]);
+        CityDelivery::create([
+            'title' => $request->input('title'),
+            'zone' => $request->input('zone') ?: null,
+        ]);
         return redirect('/admin/cities')->with('success', 'Город добавлен');
+    }
+
+    public function updateCity(Request $request, $id)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        CityDelivery::where('id', $id)->update([
+            'title' => $request->input('title'),
+            'zone' => $request->input('zone') ?: null,
+        ]);
+        return redirect('/admin/cities')->with('success', 'Город обновлён');
     }
 
     public function deleteCity($id)

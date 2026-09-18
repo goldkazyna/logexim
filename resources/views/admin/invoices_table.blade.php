@@ -1,8 +1,5 @@
 @php
     $showCourier = array_intersect($panelRoles, ['admin', 'dispatcher']) !== [];
-    // Этап для полосы прогресса: есть детальный — по нему; нет — выводим из
-    // административного статуса (у старых накладных detail_status = 0).
-    $stageByStatus = [0 => 0, 1 => 1, 2 => 4, 3 => 6, 4 => 0];
 @endphp
 <table>
     <thead>
@@ -20,20 +17,7 @@
         <td>{{ optional($inv->courier)->full_name ?: '—' }}</td>
         @endif
         <td>{{ $inv->weight }}</td>
-        <td>
-            @if((int) $inv->status === 4)
-                <span class="stage-cancelled">Отменена</span>
-            @else
-                @php $stage = (int) $inv->detail_status > 0 ? (int) $inv->detail_status : ($stageByStatus[(int) $inv->status] ?? 0); @endphp
-                @if($inv->isLocalDelivery())
-                    {{-- Внутри одного города склад пропускается — короткая цепочка. --}}
-                    @php $localPos = $stage >= 6 ? 2 : ($stage >= 2 ? 1 : 0); @endphp
-                    @include('partials.stage-progress', ['labels' => array_values(\App\Models\Invoice::LOCAL_DETAIL_STATUSES), 'current' => $localPos])
-                @else
-                    @include('partials.stage-progress', ['labels' => array_values(\App\Models\Invoice::DETAIL_STATUSES), 'current' => $stage])
-                @endif
-            @endif
-        </td>
+        <td>@include('partials.invoice-stage-cell', ['inv' => $inv])</td>
         <td><a href="/admin/invoices/view/{{ $inv->id }}" target="_blank" class="btn btn-sm btn-primary">Просмотр</a></td>
     </tr>
     @empty
