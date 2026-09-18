@@ -12,6 +12,7 @@ use App\Models\TmOrder;
 use App\Models\TmNews;
 use App\Models\TmPage;
 use App\Models\CityDelivery;
+use App\Models\Zone;
 use App\Models\Avia;
 use App\Models\Avto;
 use App\Models\Zh;
@@ -465,7 +466,30 @@ class AdminController extends Controller
     {
         if ($r = $this->checkAuth()) return $r;
         $cities = CityDelivery::orderBy('title')->get();
-        return view('admin.cities', compact('cities'));
+        $zones = Zone::orderBy('name')->get();
+        return view('admin.cities', compact('cities', 'zones'));
+    }
+
+    public function storeZone(Request $request)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        $name = trim((string) $request->input('name'));
+        if ($name !== '') {
+            Zone::firstOrCreate(['name' => $name]);
+        }
+        return redirect('/admin/cities')->with('success', 'Зона добавлена');
+    }
+
+    public function deleteZone($id)
+    {
+        if ($r = $this->checkAuth()) return $r;
+        $zone = Zone::find($id);
+        if ($zone) {
+            // Снимаем эту зону с городов, чтобы не осталось «висячих» ссылок.
+            CityDelivery::where('zone', $zone->name)->update(['zone' => null]);
+            $zone->delete();
+        }
+        return redirect('/admin/cities')->with('success', 'Зона удалена');
     }
 
     public function storeCity(Request $request)

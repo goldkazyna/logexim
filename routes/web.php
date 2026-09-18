@@ -91,6 +91,8 @@ Route::get('/admin/pages', [AdminController::class, 'pages']);
 Route::get('/admin/pages/edit/{id}', [AdminController::class, 'editPage']);
 Route::post('/admin/pages/update/{id}', [AdminController::class, 'updatePage']);
 Route::get('/admin/cities', [AdminController::class, 'cities']);
+Route::post('/admin/zones/store', [AdminController::class, 'storeZone']);
+Route::get('/admin/zones/delete/{id}', [AdminController::class, 'deleteZone'])->whereNumber('id');
 Route::post('/admin/cities/store', [AdminController::class, 'storeCity']);
 Route::post('/admin/cities/{id}/update', [AdminController::class, 'updateCity'])->whereNumber('id');
 Route::get('/admin/cities/delete/{id}', [AdminController::class, 'deleteCity']);
