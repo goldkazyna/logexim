@@ -115,4 +115,16 @@ class CityLinksTest extends TestCase
 
         $this->assertSame(5, (int) $inv->refresh()->detail_status);
     }
+
+    public function test_cities_page_opens_with_selected_city(): void
+    {
+        $this->withSession(['admin' => 'admin', 'role' => 'admin', 'roles' => ['admin']]);
+        $alm = $this->city('Алматы');
+        $this->city('Шымкент');
+
+        $this->get('/admin/cities?city=' . $alm->id)
+            ->assertOk()
+            ->assertSee('Шымкент')
+            ->assertSee('linked[]', false);
+    }
 }

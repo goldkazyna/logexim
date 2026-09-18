@@ -462,7 +462,7 @@ class AdminController extends Controller
     }
 
     // === CITIES ===
-    public function cities()
+    public function cities(Request $request)
     {
         if ($r = $this->checkAuth()) return $r;
         $cities = CityDelivery::orderBy('title')->get();
