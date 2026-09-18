@@ -466,30 +466,54 @@ class AdminController extends Controller
     {
         if ($r = $this->checkAuth()) return $r;
         $cities = CityDelivery::orderBy('title')->get();
-        $zones = Zone::orderBy('name')->get();
-        return view('admin.cities', compact('cities', 'zones'));
+
+        // Выбранный для настройки город и его прямые направления (без склада).
+        $selectedCity = $request->filled('city') ? CityDelivery::find((int) $request->input('city')) : null;
+        $linkedIds = $selectedCity
+            ? \Illuminate\Support\Facades\DB::table('city_links')->where('city_id', $selectedCity->id)->pluck('linked_city_id')->all()
+            : [];
+
+        // Карта id → название и сводка связей для показа.
+        $names = $cities->pluck('title', 'id');
+        $linksByCity = [];
+        foreach (\Illuminate\Support\Facades\DB::table('city_links')->get() as $l) {
+            $linksByCity[$l->city_id][] = $names[$l->linked_city_id] ?? null;
+        }
+
+        return view('admin.cities', compact('cities', 'selectedCity', 'linkedIds', 'names', 'linksByCity'));
     }
 
-    public function storeZone(Request $request)
+    // Прямые направления без склада: город X ↔ отмеченные города (в обе стороны).
+    public function updateCityLinks(Request $request, $id)
     {
         if ($r = $this->checkAuth()) return $r;
-        $name = trim((string) $request->input('name'));
-        if ($name !== '') {
-            Zone::firstOrCreate(['name' => $name]);
-        }
-        return redirect('/admin/cities')->with('success', 'Зона добавлена');
-    }
+        $city = CityDelivery::findOrFail($id);
 
-    public function deleteZone($id)
-    {
-        if ($r = $this->checkAuth()) return $r;
-        $zone = Zone::find($id);
-        if ($zone) {
-            // Снимаем эту зону с городов, чтобы не осталось «висячих» ссылок.
-            CityDelivery::where('zone', $zone->name)->update(['zone' => null]);
-            $zone->delete();
+        $selected = collect((array) $request->input('linked', []))
+            ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v > 0 && $v !== (int) $city->id)
+            ->unique()->values();
+        $valid = CityDelivery::whereIn('id', $selected)->pluck('id');
+
+        $current = \Illuminate\Support\Facades\DB::table('city_links')->where('city_id', $city->id)->pluck('linked_city_id');
+
+        $add = $valid->diff($current);
+        $remove = $current->diff($valid);
+
+        foreach ($add as $lid) {
+            \Illuminate\Support\Facades\DB::table('city_links')->insertOrIgnore([
+                ['city_id' => $city->id, 'linked_city_id' => $lid],
+                ['city_id' => $lid, 'linked_city_id' => $city->id],
+            ]);
         }
-        return redirect('/admin/cities')->with('success', 'Зона удалена');
+        foreach ($remove as $lid) {
+            \Illuminate\Support\Facades\DB::table('city_links')
+                ->where(fn ($q) => $q->where(['city_id' => $city->id, 'linked_city_id' => $lid]))
+                ->orWhere(fn ($q) => $q->where(['city_id' => $lid, 'linked_city_id' => $city->id]))
+                ->delete();
+        }
+
+        return redirect('/admin/cities?city=' . $city->id)->with('success', 'Направления сохранены');
     }
 
     public function storeCity(Request $request)

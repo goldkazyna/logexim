@@ -1,60 +1,81 @@
 @extends('layouts.admin')
-@section('title', 'Города и зоны')
+@section('title', 'Города и направления')
 @push('styles')
 <style>
-    .cz-wrap { max-width: 760px; }
+    .cz-wrap { max-width: 820px; }
     .cz-card { background:#fff; border:1px solid #eaecef; border-radius:14px; margin-bottom:18px; overflow:hidden; }
     .cz-card__h { padding:14px 18px; border-bottom:1px solid #f0f1f4; font-weight:700; font-size:15px; }
     .cz-card__b { padding:16px 18px; }
-    .cz-hint { color:#8a9099; font-size:12.5px; margin:4px 0 0; }
-
-    .cz-add { display:flex; gap:8px; }
-    .cz-add input, .cz-add select, .cz-input, .cz-select {
-        border:1px solid #d7dbe0; border-radius:9px; padding:9px 12px; font-size:14px; outline:none; background:#fff; }
-    .cz-add input:focus, .cz-select:focus, .cz-input:focus { border-color:#d0171c; }
-    .cz-btn { border:none; border-radius:9px; padding:9px 16px; font-size:14px; font-weight:600; cursor:pointer; }
+    .cz-hint { color:#8a9099; font-size:13px; margin:0 0 14px; line-height:1.45; }
+    .cz-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .cz-input, .cz-select { border:1px solid #d7dbe0; border-radius:9px; padding:9px 12px; font-size:14px; outline:none; background:#fff; }
+    .cz-input:focus, .cz-select:focus { border-color:#d0171c; }
+    .cz-btn { border:none; border-radius:9px; padding:9px 16px; font-size:14px; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block; }
     .cz-btn--primary { background:#d0171c; color:#fff; } .cz-btn--primary:hover { background:#a81216; }
     .cz-btn--ghost { background:#f4f6f8; color:#444; } .cz-btn--ghost:hover { background:#e9edf1; }
 
-    .cz-zones { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
-    .cz-zone { display:inline-flex; align-items:center; gap:8px; background:#eef2f7; color:#2b3444; border-radius:999px; padding:6px 6px 6px 14px; font-size:13px; font-weight:600; }
-    .cz-zone a { display:inline-flex; width:20px; height:20px; border-radius:50%; background:#cdd4de; color:#fff; align-items:center; justify-content:center; text-decoration:none; font-size:13px; line-height:1; }
-    .cz-zone a:hover { background:#d0171c; }
+    .cz-checks { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:8px 16px; margin:14px 0 16px; }
+    .cz-checks label { display:flex; align-items:center; gap:8px; font-size:14px; cursor:pointer; }
+
+    .cz-summary { margin-top:4px; }
+    .cz-summary__item { padding:8px 0; border-top:1px solid #f2f3f6; font-size:14px; }
+    .cz-summary__item b { font-weight:700; }
+    .cz-summary__to { color:#2b6cb0; }
     .cz-empty { color:#8a9099; font-size:13px; }
 
     table.cz-tbl { width:100%; border-collapse:collapse; }
-    .cz-tbl th { text-align:left; font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#9aa0a6; padding:0 10px 10px; }
-    .cz-tbl td { padding:8px 10px; border-top:1px solid #f2f3f6; vertical-align:middle; }
+    .cz-tbl td { padding:9px 10px; border-top:1px solid #f2f3f6; font-size:14px; }
     .cz-tbl tr:hover td { background:#fafbfc; }
-    .cz-tbl .cz-city { font-weight:600; font-size:14px; }
-    .cz-tbl .cz-select { width:100%; max-width:280px; }
-    .cz-row-actions { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
-    .cz-del { color:#c2c6cd; text-decoration:none; font-size:18px; padding:4px 8px; border-radius:8px; }
-    .cz-del:hover { color:#d0171c; background:#fdecec; }
-    .cz-zoneform { display:flex; gap:8px; align-items:center; }
+    .cz-del { color:#c2c6cd; text-decoration:none; font-size:17px; }
+    .cz-del:hover { color:#d0171c; }
 </style>
 @endpush
 @section('content')
 <div class="cz-wrap">
 
     <div class="cz-card">
-        <div class="cz-card__h">Зоны доставки</div>
+        <div class="cz-card__h">Доставка без склада — прямые направления</div>
         <div class="cz-card__b">
-            <form action="{{ url('admin/zones/store') }}" method="post" class="cz-add">
-                @csrf
-                <input type="text" name="name" placeholder="Название зоны, напр. Алматы и область" style="flex:1" required>
-                <button type="submit" class="cz-btn cz-btn--primary">Добавить зону</button>
+            <p class="cz-hint">Выберите город и отметьте, <b>в какие города из него доставка идёт напрямую, без склада</b>. Связь работает в обе стороны (Алматы ↔ Шымкент). Можно отметить сколько угодно городов.</p>
+
+            <form method="get" action="/admin/cities" class="cz-row">
+                <span>Город:</span>
+                <select name="city" class="cz-select" onchange="this.form.submit()">
+                    <option value="">— выберите город —</option>
+                    @foreach($cities as $c)
+                        <option value="{{ $c->id }}" @selected($selectedCity && $selectedCity->id === $c->id)>{{ $c->title }}</option>
+                    @endforeach
+                </select>
+                <noscript><button class="cz-btn cz-btn--ghost">Открыть</button></noscript>
             </form>
-            <p class="cz-hint">Города одной зоны везём без склада. Сначала заведите зону здесь, потом выберите её у городов ниже.</p>
-            <div class="cz-zones">
-                @forelse($zones as $z)
-                    <span class="cz-zone">{{ $z->name }}
-                        <a href="/admin/zones/delete/{{ $z->id }}" title="Удалить зону"
-                           onclick="return confirm('Удалить зону «{{ $z->name }}»? У городов этой зоны она снимется.')">×</a>
-                    </span>
-                @empty
-                    <span class="cz-empty">Зон пока нет — добавьте первую выше.</span>
-                @endforelse
+
+            @if($selectedCity)
+                <form action="/admin/cities/{{ $selectedCity->id }}/links" method="post">
+                    @csrf
+                    <div class="cz-checks">
+                        @foreach($cities as $c)
+                            @if($c->id !== $selectedCity->id)
+                                <label>
+                                    <input type="checkbox" name="linked[]" value="{{ $c->id }}" @checked(in_array($c->id, $linkedIds))>
+                                    {{ $c->title }}
+                                </label>
+                            @endif
+                        @endforeach
+                    </div>
+                    <button type="submit" class="cz-btn cz-btn--primary">Сохранить направления для «{{ $selectedCity->title }}»</button>
+                </form>
+            @endif
+
+            <div class="cz-summary">
+                <p class="cz-hint" style="margin:18px 0 6px"><b>Настроенные направления:</b></p>
+                @php $has = false; @endphp
+                @foreach($cities as $c)
+                    @if(!empty($linksByCity[$c->id]))
+                        @php $has = true; @endphp
+                        <div class="cz-summary__item"><b>{{ $c->title }}</b> → <span class="cz-summary__to">{{ implode(', ', array_filter($linksByCity[$c->id])) }}</span></div>
+                    @endif
+                @endforeach
+                @unless($has)<span class="cz-empty">Пока ничего не настроено.</span>@endunless
             </div>
         </div>
     </div>
@@ -62,43 +83,21 @@
     <div class="cz-card">
         <div class="cz-card__h">Города</div>
         <div class="cz-card__b">
-            <form action="{{ url('admin/cities/store') }}" method="post" class="cz-add" style="margin-bottom:16px">
+            <form action="{{ url('admin/cities/store') }}" method="post" class="cz-row" style="margin-bottom:14px">
                 @csrf
-                <input type="text" name="title" placeholder="Новый город" style="flex:1" required>
-                <select name="zone" class="cz-select">
-                    <option value="">— без зоны —</option>
-                    @foreach($zones as $z)<option value="{{ $z->name }}">{{ $z->name }}</option>@endforeach
-                </select>
+                <input type="text" name="title" class="cz-input" placeholder="Новый город" style="flex:1" required>
                 <button type="submit" class="cz-btn cz-btn--primary">Добавить</button>
             </form>
-
             <table class="cz-tbl">
-                <thead><tr><th>Город</th><th>Зона доставки</th><th></th></tr></thead>
-                <tbody>
                 @foreach($cities as $c)
                 <tr>
-                    <td class="cz-city">{{ $c->title }}</td>
-                    <td colspan="2">
-                        <div class="cz-zoneform">
-                            <form action="/admin/cities/{{ $c->id }}/update" method="post" style="display:flex;gap:8px;flex:1;margin:0">
-                                @csrf
-                                <input type="hidden" name="title" value="{{ $c->title }}">
-                                <select name="zone" class="cz-select">
-                                    <option value="">— без зоны —</option>
-                                    @foreach($zones as $z)<option value="{{ $z->name }}" @selected($c->zone === $z->name)>{{ $z->name }}</option>@endforeach
-                                    @if($c->zone && !$zones->contains('name', $c->zone))
-                                        <option value="{{ $c->zone }}" selected>{{ $c->zone }} (нет в списке)</option>
-                                    @endif
-                                </select>
-                                <button type="submit" class="cz-btn cz-btn--ghost">Сохранить</button>
-                            </form>
-                            <a href="/admin/cities/delete/{{ $c->id }}" class="cz-del" title="Удалить город"
-                               onclick="return confirm('Удалить город «{{ $c->title }}»?')">🗑</a>
-                        </div>
+                    <td>{{ $c->title }}</td>
+                    <td style="text-align:right">
+                        <a href="/admin/cities?city={{ $c->id }}" class="cz-btn cz-btn--ghost" style="padding:5px 12px;font-size:13px">Направления</a>
+                        <a href="/admin/cities/delete/{{ $c->id }}" class="cz-del" title="Удалить город" onclick="return confirm('Удалить город «{{ $c->title }}»?')" style="margin-left:8px">🗑</a>
                     </td>
                 </tr>
                 @endforeach
-                </tbody>
             </table>
         </div>
     </div>

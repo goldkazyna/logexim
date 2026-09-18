@@ -37,8 +37,8 @@ class Invoice extends Model
     ];
 
     /**
-     * Доставка без склада: тот же город или одна зона доставки.
-     * Города с одинаковой непустой зоной (city_delivery.zone) — одна область.
+     * Доставка без склада: тот же город или между городами есть прямая связь
+     * (см. city_links, задаётся в /admin/cities).
      */
     public function isLocalDelivery(): bool
     {
@@ -52,19 +52,21 @@ class Invoice extends Model
             return true;
         }
 
-        // Разные города — сверяем зоны. Справочник маленький, читаем целиком.
-        $zones = [];
-        foreach (CityDelivery::select('title', 'zone')->get() as $city) {
-            $zone = mb_strtolower(trim((string) $city->zone));
-            if ($zone !== '') {
-                $zones[mb_strtolower(trim((string) $city->title))] = $zone;
-            }
+        // Сопоставляем названия городов их id (справочник маленький).
+        $ids = [];
+        foreach (CityDelivery::get(['id', 'title']) as $city) {
+            $ids[mb_strtolower(trim((string) $city->title))] = $city->id;
+        }
+        $ida = $ids[$a] ?? null;
+        $idb = $ids[$b] ?? null;
+        if ($ida === null || $idb === null) {
+            return false;
         }
 
-        $za = $zones[$a] ?? '';
-        $zb = $zones[$b] ?? '';
-
-        return $za !== '' && $za === $zb;
+        return \Illuminate\Support\Facades\DB::table('city_links')
+            ->where('city_id', $ida)
+            ->where('linked_city_id', $idb)
+            ->exists();
     }
 
     /** Позиция в короткой локальной цепочке (0..2) по общему detail_status. */
