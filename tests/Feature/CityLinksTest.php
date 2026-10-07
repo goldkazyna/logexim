@@ -4,10 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\CityDelivery;
 use App\Models\Invoice;
-use App\Models\Staff;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class CityLinksTest extends TestCase
@@ -43,28 +41,15 @@ class CityLinksTest extends TestCase
         ]);
     }
 
-    public function test_linked_cities_are_local_both_ways(): void
+    public function test_city_links_and_same_names_no_longer_make_delivery_local(): void
     {
         $alm = $this->city('Алматы');
         $shy = $this->city('Шымкент');
         $this->link($alm->id, $shy->id);
 
-        $this->assertTrue($this->invoice('Алматы', 'Шымкент')->isLocalDelivery());
-        $this->assertTrue($this->invoice('Шымкент', 'Алматы')->isLocalDelivery());
-    }
-
-    public function test_unlinked_cities_are_not_local(): void
-    {
-        $this->city('Алматы');
-        $this->city('Костанай');
-
-        $this->assertFalse($this->invoice('Алматы', 'Костанай')->isLocalDelivery());
-    }
-
-    public function test_same_city_still_local(): void
-    {
-        $this->city('Актобе');
-        $this->assertTrue($this->invoice('Актобе', 'Актобе')->isLocalDelivery());
+        // Теперь без склада — только по галочке «тот же город».
+        $this->assertFalse($this->invoice('Алматы', 'Шымкент')->isLocalDelivery());
+        $this->assertFalse($this->invoice('Актобе', 'Актобе')->isLocalDelivery());
     }
 
     public function test_admin_saves_directions_symmetrically(): void
@@ -80,7 +65,6 @@ class CityLinksTest extends TestCase
         // Обе стороны записаны.
         $this->assertDatabaseHas('city_links', ['city_id' => $alm->id, 'linked_city_id' => $shy->id]);
         $this->assertDatabaseHas('city_links', ['city_id' => $shy->id, 'linked_city_id' => $alm->id]);
-        $this->assertTrue($this->invoice('Астана', 'Алматы')->isLocalDelivery());
     }
 
     public function test_admin_can_remove_a_direction(): void
@@ -94,26 +78,6 @@ class CityLinksTest extends TestCase
         $this->post("/admin/cities/{$alm->id}/links", ['linked' => []]);
 
         $this->assertDatabaseCount('city_links', 0);
-        $this->assertFalse($this->invoice('Алматы', 'Шымкент')->isLocalDelivery());
-    }
-
-    public function test_pickup_of_linked_direction_skips_warehouse(): void
-    {
-        $alm = $this->city('Алматы');
-        $shy = $this->city('Шымкент');
-        $this->link($alm->id, $shy->id);
-        $courier = Staff::create([
-            'full_name' => 'К', 'login' => 'k1', 'password' => sha1(md5('x')),
-            'role' => 'courier', 'roles' => ['courier'], 'active' => 1,
-        ]);
-        $inv = $this->invoice('Алматы', 'Шымкент');
-        Sanctum::actingAs($courier);
-
-        $sig = 'data:image/png;base64,' . base64_encode(str_repeat('sig', 8));
-        $this->postJson("/api/staff/invoices/{$inv->id}/pickup", ['signature' => $sig], ['X-Staff-Role' => 'courier'])
-            ->assertOk();
-
-        $this->assertSame(5, (int) $inv->refresh()->detail_status);
     }
 
     public function test_cities_page_opens_with_selected_city(): void

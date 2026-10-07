@@ -173,7 +173,7 @@ class InvoicePublicTrackingTest extends TestCase
     {
         // Один город, курьер забрал (detail 5) — короткая цепочка без склада.
         $tracking = $this->invoice([
-            'sender_city' => 'Алматы', 'recipient_city' => 'Алматы',
+            'sender_city' => 'Алматы', 'recipient_city' => 'Алматы', 'same_city' => true,
             'status' => 2, 'detail_status' => 5,
         ])->publicTracking();
 
@@ -185,7 +185,7 @@ class InvoicePublicTrackingTest extends TestCase
     public function test_local_delivered_is_fully_done(): void
     {
         $tracking = $this->invoice([
-            'sender_city' => 'Алматы', 'recipient_city' => 'алматы',
+            'sender_city' => 'Байсерке', 'recipient_city' => 'Алматы', 'same_city' => true,
             'status' => 3, 'detail_status' => 6,
         ])->publicTracking();
 

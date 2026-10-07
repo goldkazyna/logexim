@@ -37,41 +37,13 @@ class Invoice extends Model
     ];
 
     /**
-     * Доставка без склада: клиент отметил «тот же город» при создании,
-     * названия городов совпадают или между городами есть прямая связь
-     * (см. city_links, задаётся в /admin/cities).
+     * Доставка без склада — только если клиент отметил галочку
+     * «Получатель в этом же городе». Названия городов не сравниваем:
+     * пишут по-разному (Байсерке / Алматы — по факту один город).
      */
     public function isLocalDelivery(): bool
     {
-        if ($this->same_city) {
-            return true;
-        }
-
-        $a = mb_strtolower(trim((string) $this->sender_city));
-        $b = mb_strtolower(trim((string) $this->recipient_city));
-
-        if ($a === '') {
-            return false;
-        }
-        if ($a === $b) {
-            return true;
-        }
-
-        // Сопоставляем названия городов их id (справочник маленький).
-        $ids = [];
-        foreach (CityDelivery::get(['id', 'title']) as $city) {
-            $ids[mb_strtolower(trim((string) $city->title))] = $city->id;
-        }
-        $ida = $ids[$a] ?? null;
-        $idb = $ids[$b] ?? null;
-        if ($ida === null || $idb === null) {
-            return false;
-        }
-
-        return \Illuminate\Support\Facades\DB::table('city_links')
-            ->where('city_id', $ida)
-            ->where('linked_city_id', $idb)
-            ->exists();
+        return (bool) $this->same_city;
     }
 
     /** Позиция в короткой локальной цепочке (0..2) по общему detail_status. */

@@ -25,7 +25,7 @@ class LocalDeliveryTest extends TestCase
         ]);
     }
 
-    private function invoice(string $from, string $to): Invoice
+    private function invoice(string $from, string $to, bool $sameCity = false): Invoice
     {
         static $n = 903000;
         $n++;
@@ -38,6 +38,7 @@ class LocalDeliveryTest extends TestCase
             'recipient_name' => 'П', 'recipient_phone' => '+7', 'recipient_address' => 'b',
             'recipient_city' => $to, 'recipient_country' => 'KZ',
             'description' => 'x', 'quantity' => 1, 'weight' => 5, 'declared_value' => 0,
+            'same_city' => $sameCity,
         ]);
     }
 
@@ -49,7 +50,7 @@ class LocalDeliveryTest extends TestCase
     public function test_same_city_pickup_skips_warehouse(): void
     {
         $c = $this->courier();
-        $inv = $this->invoice('Алматы', 'Алматы');
+        $inv = $this->invoice('Алматы', 'Алматы', true);
         Sanctum::actingAs($c);
 
         $this->postJson("/api/staff/invoices/{$inv->id}/pickup", ['signature' => $this->sig()], ['X-Staff-Role' => 'courier'])
@@ -64,7 +65,7 @@ class LocalDeliveryTest extends TestCase
     public function test_same_courier_delivers_local_invoice_directly(): void
     {
         $c = $this->courier();
-        $inv = $this->invoice('Алматы', 'алматы '); // регистр/пробел не важны
+        $inv = $this->invoice('Байсерке', 'Алматы', true);
         Sanctum::actingAs($c);
 
         $this->postJson("/api/staff/invoices/{$inv->id}/pickup", ['signature' => $this->sig()], ['X-Staff-Role' => 'courier'])->assertOk();
@@ -79,10 +80,10 @@ class LocalDeliveryTest extends TestCase
         $this->assertNotNull($inv->delivered_at);
     }
 
-    public function test_different_city_still_goes_through_warehouse(): void
+    public function test_without_checkbox_goes_through_warehouse_even_if_same_city(): void
     {
         $c = $this->courier();
-        $inv = $this->invoice('Алматы', 'Астана');
+        $inv = $this->invoice('Алматы', 'Алматы');
         Sanctum::actingAs($c);
 
         $this->postJson("/api/staff/invoices/{$inv->id}/pickup", ['signature' => $this->sig()], ['X-Staff-Role' => 'courier'])->assertOk();
@@ -95,8 +96,7 @@ class LocalDeliveryTest extends TestCase
     public function test_same_city_flag_makes_delivery_local_even_if_names_differ(): void
     {
         $c = $this->courier();
-        $inv = $this->invoice('г. Алматы', 'Алматы');
-        $inv->update(['same_city' => true]);
+        $inv = $this->invoice('г. Алматы', 'Алматы', true);
         Sanctum::actingAs($c);
 
         $this->postJson("/api/staff/invoices/{$inv->id}/pickup", ['signature' => $this->sig()], ['X-Staff-Role' => 'courier'])->assertOk();
@@ -104,7 +104,7 @@ class LocalDeliveryTest extends TestCase
         $this->assertSame(5, (int) $inv->refresh()->detail_status, 'галочка «тот же город» — без склада');
     }
 
-    public function test_cabinet_same_city_checkbox_copies_sender_city(): void
+    public function test_cabinet_same_city_checkbox_keeps_cities_as_typed(): void
     {
         Http::fake();
         User::create([
@@ -117,14 +117,15 @@ class LocalDeliveryTest extends TestCase
         $this->withSession(['bin' => '111122223333'])
             ->post('/cabinet/save_invoices', [
                 'date' => '2026-10-07',
-                'sender_name' => 'О', 'sender_phone' => '+7', 'sender_city' => 'Шымкент', 'sender_address' => 'a',
-                'recipient_name' => 'П', 'recipient_phone' => '+7', 'recipient_city' => 'что-то другое', 'recipient_address' => 'b',
+                'sender_name' => 'О', 'sender_phone' => '+7', 'sender_city' => 'Байсерке', 'sender_address' => 'a',
+                'recipient_name' => 'П', 'recipient_phone' => '+7', 'recipient_city' => 'Алматы', 'recipient_address' => 'b',
                 'description' => 'x', 'quantity' => 1, 'weight' => 1,
                 'same_city' => '1',
             ])->assertRedirect('/cabinet/invoices');
 
         $inv = Invoice::latest('id')->first();
-        $this->assertSame('Шымкент', $inv->recipient_city);
+        $this->assertSame('Байсерке', $inv->sender_city);
+        $this->assertSame('Алматы', $inv->recipient_city);
         $this->assertTrue((bool) $inv->same_city);
         $this->assertTrue($inv->isLocalDelivery());
     }
