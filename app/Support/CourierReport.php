@@ -21,6 +21,13 @@ class CourierReport
         'delivery' => 'Доставил получателю',
     ];
 
+    /** Короткие подписи — для узкой колонки в PDF. */
+    public const SHORT = [
+        'pickup' => 'Забрал',
+        'destination_pickup' => 'Принял',
+        'delivery' => 'Доставил',
+    ];
+
     /** Быстрые периоды: ключ => [название, с, по]. */
     public static function presets(): array
     {

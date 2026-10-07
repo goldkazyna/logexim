@@ -84,7 +84,7 @@
                 @foreach($r['items'] as $it)
                     <tr>
                         <td style="white-space:nowrap">{{ $it['at']->format('d.m.Y H:i') }}</td>
-                        <td>{{ $it['action_label'] }}</td>
+                        <td>{{ \App\Support\CourierReport::SHORT[$it['action']] }}</td>
                         <td>№{{ $it['number'] }}</td>
                         <td>{{ $it['from'] }} → {{ $it['to'] }}@if($it['local']) <span class="muted">(без склада)</span>@endif</td>
                         <td>{{ $it['recipient'] }}</td>
