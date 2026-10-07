@@ -65,4 +65,23 @@ class AdminInvoicesListTest extends TestCase
         $this->assertStringContainsString('Доставлено', $html);
         $this->assertStringNotContainsString('Заявка создана', $html);
     }
+
+    public function test_list_shows_sender_and_recipient_cities(): void
+    {
+        $inv = Invoice::create([
+            'user_id' => 1, 'date' => '2026-10-07', 'invoice_number' => 905555,
+            'status' => 0, 'detail_status' => 0,
+            'sender_name' => 'О', 'sender_phone' => '+7', 'sender_address' => 'a',
+            'sender_city' => 'Байсерке', 'sender_country' => 'KZ',
+            'recipient_name' => 'П', 'recipient_phone' => '+7', 'recipient_address' => 'b',
+            'recipient_city' => 'Шымкент', 'recipient_country' => 'KZ',
+            'description' => 'x', 'quantity' => 1, 'weight' => 5, 'declared_value' => 0,
+        ]);
+        $this->withSession(['admin' => 'admin', 'role' => 'admin', 'roles' => ['admin']]);
+
+        $this->get('/admin/invoices')->assertOk()
+            ->assertSee('Откуда:')->assertSee('Байсерке')
+            ->assertSee('Куда:')->assertSee('Шымкент');
+        $this->get('/admin/invoices?search=Шымкент')->assertOk()->assertSee('905555');
+    }
 }

@@ -3,6 +3,8 @@
 @push('styles')
 @include('partials.stage-progress-styles')
 <style>
+    .party-city { margin-top: 4px; font-size: 12px; font-weight: 600; color: #D0171C; }
+    .party-city span { color: #999; font-weight: 400; }
     .pagination-wrapper { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 20px; flex-wrap: wrap; }
     .pagination-wrapper .page-link { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; padding: 0 10px; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; color: #333; font-size: 14px; background: #fff; transition: all 0.2s; }
     .pagination-wrapper .page-link:hover { background: #f0f0f0; }
@@ -14,7 +16,7 @@
 @section('content')
 <div style="margin-bottom:15px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <i class="fas fa-search" style="color:#999;font-size:18px"></i>
-    <input type="text" id="invoice-search" placeholder="Поиск по номеру, отправителю, получателю..." style="padding:10px 15px;border:1px solid #ddd;border-radius:10px;font-size:14px;width:350px;outline:none" autocomplete="off">
+    <input type="text" id="invoice-search" placeholder="Поиск по номеру, отправителю, получателю, городу..." style="padding:10px 15px;border:1px solid #ddd;border-radius:10px;font-size:14px;width:350px;outline:none" autocomplete="off">
     <select id="bin-filter" style="padding:10px 15px;border:1px solid #ddd;border-radius:10px;font-size:14px;outline:none;min-width:200px;background:#fff">
         <option value="">Все ИИН/БИН</option>
         @foreach($bins as $id => $bin)

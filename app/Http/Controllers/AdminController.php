@@ -165,8 +165,8 @@ class AdminController extends Controller
                 . '<td>' . $inv->invoice_number . '</td>'
                 . '<td>' . $date . '</td>'
                 . '<td>' . e($inv->user->bin ?? '—') . '</td>'
-                . '<td>' . e($inv->sender_company) . '<br><small>' . e($inv->sender_name) . '</small></td>'
-                . '<td>' . e($inv->recipient_company) . '<br><small>' . e($inv->recipient_name) . '</small></td>'
+                . '<td>' . view('partials.invoice-party-cell', ['company' => $inv->sender_company, 'name' => $inv->sender_name, 'city' => $inv->sender_city, 'cityLabel' => 'Откуда'])->render() . '</td>'
+                . '<td>' . view('partials.invoice-party-cell', ['company' => $inv->recipient_company, 'name' => $inv->recipient_name, 'city' => $inv->recipient_city, 'cityLabel' => 'Куда'])->render() . '</td>'
                 . $courierCell
                 . '<td>' . $inv->weight . '</td>'
                 . '<td>' . $stageCell . '</td>'
@@ -190,7 +190,9 @@ class AdminController extends Controller
                   ->orWhere('sender_name', 'like', "%{$search}%")
                   ->orWhere('sender_company', 'like', "%{$search}%")
                   ->orWhere('recipient_name', 'like', "%{$search}%")
-                  ->orWhere('recipient_company', 'like', "%{$search}%");
+                  ->orWhere('recipient_company', 'like', "%{$search}%")
+                  ->orWhere('sender_city', 'like', "%{$search}%")
+                  ->orWhere('recipient_city', 'like', "%{$search}%");
             });
         }
         if ($request->filled('bin')) {

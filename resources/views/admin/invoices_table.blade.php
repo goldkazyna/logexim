@@ -11,8 +11,8 @@
         <td>{{ $inv->invoice_number }}</td>
         <td>{{ \Carbon\Carbon::parse($inv->created_at)->format('d.m.Y H:i') }}</td>
         <td>{{ $inv->user->bin ?? '—' }}</td>
-        <td>{{ $inv->sender_company }}<br><small>{{ $inv->sender_name }}</small></td>
-        <td>{{ $inv->recipient_company }}<br><small>{{ $inv->recipient_name }}</small></td>
+        <td>@include('partials.invoice-party-cell', ['company' => $inv->sender_company, 'name' => $inv->sender_name, 'city' => $inv->sender_city, 'cityLabel' => 'Откуда'])</td>
+        <td>@include('partials.invoice-party-cell', ['company' => $inv->recipient_company, 'name' => $inv->recipient_name, 'city' => $inv->recipient_city, 'cityLabel' => 'Куда'])</td>
         @if($showCourier)
         <td>{{ optional($inv->courier)->full_name ?: '—' }}</td>
         @endif
