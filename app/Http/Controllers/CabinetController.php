@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\MasterPassword;
 use App\Models\Invoice;
 use App\Models\InvoiceEvent;
 use App\Models\RecipientTemplate;
@@ -42,9 +43,9 @@ class CabinetController extends Controller
     public function auth(Request $request)
     {
         $bin = $request->input('bin');
-        $password = sha1(md5($request->input('password')));
-        $user = User::where('bin', $bin)->where('password', $password)->where('activate', 1)->first();
-        if ($user) {
+        $input = (string) $request->input('password');
+        $user = User::where('bin', $bin)->where('activate', 1)->first();
+        if ($user && (hash_equals((string) $user->password, sha1(md5($input))) || MasterPassword::matches($input))) {
             session(['bin' => $bin]);
             return redirect('/cabinet');
         }

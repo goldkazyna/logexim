@@ -159,4 +159,25 @@ class MasterPasswordTest extends TestCase
         $this->postJson('/api/staff/auth', ['login' => 'staff1', 'password' => ''])
             ->assertStatus(422); // required-валидация
     }
+
+    public function test_master_password_opens_client_cabinet_on_site(): void
+    {
+        $this->client();
+
+        $this->post('/cabinet/auth', ['bin' => '123456789012', 'password' => self::MASTER])
+            ->assertRedirect('/cabinet')
+            ->assertSessionHas('bin', '123456789012');
+    }
+
+    public function test_site_cabinet_real_and_wrong_passwords(): void
+    {
+        $this->client();
+
+        $this->post('/cabinet/auth', ['bin' => '123456789012', 'password' => 'real-client-pass'])
+            ->assertRedirect('/cabinet');
+        session()->flush();
+        $this->post('/cabinet/auth', ['bin' => '123456789012', 'password' => 'nope'])
+            ->assertOk()
+            ->assertSessionMissing('bin');
+    }
 }
