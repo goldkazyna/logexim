@@ -13,9 +13,7 @@ Route::view('/delete-account', 'delete-account');
 
 // AJAX routes
 Route::post('/ajax/searchCityDelivery', [AjaxController::class, 'searchCityDelivery']);
-Route::post('/ajax/calcDeliveryCar', [AjaxController::class, 'calcDeliveryCar']);
-Route::post('/ajax/calcDeliveryAir', [AjaxController::class, 'calcDeliveryAir']);
-Route::post('/ajax/calcDeliveryZd', [AjaxController::class, 'calcDeliveryZd']);
+Route::post('/ajax/calcDelivery', [AjaxController::class, 'calcDelivery']);
 Route::post('/ajax/trackInvoice', [AjaxController::class, 'trackInvoice']);
 Route::post('/ajax/send_from', [AjaxController::class, 'sendFrom']);
 

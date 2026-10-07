@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Avia;
-use App\Models\Avto;
-use App\Models\Zh;
 use App\Models\CityDelivery;
 use App\Models\Invoice;
+use App\Support\DeliveryCalculator;
 use Illuminate\Http\Request;
 
 class AjaxController extends Controller
@@ -18,28 +16,23 @@ class AjaxController extends Controller
         return response()->json($cities);
     }
 
-    public function calcDeliveryCar(Request $request)
+    /** Калькулятор на главной — правила в App\Support\DeliveryCalculator. */
+    public function calcDelivery(Request $request, DeliveryCalculator $calculator)
     {
-        $from = $request->input('package_from');
-        $to = $request->input('package_to');
-        $route = Avto::where('city_from', $from)->where('city_to', $to)->first();
-        return response()->json($route ? ['price' => $route->price, 'time' => $route->time] : ['price' => null]);
-    }
+        $data = $request->validate([
+            'package_from' => 'required|integer',
+            'package_to' => 'required|integer',
+            'transport' => 'required|in:car,railway,air',
+            'weight' => 'nullable|numeric|min:0|max:100000',
+            'length' => 'nullable|numeric|min:0|max:10000',
+            'width' => 'nullable|numeric|min:0|max:10000',
+            'height' => 'nullable|numeric|min:0|max:10000',
+            'non_stackable' => 'nullable|boolean',
+        ]);
 
-    public function calcDeliveryAir(Request $request)
-    {
-        $from = $request->input('package_from');
-        $to = $request->input('package_to');
-        $route = Avia::where('city_from', $from)->where('city_to', $to)->first();
-        return response()->json($route ? ['price' => $route->price, 'time' => $route->time] : ['price' => null]);
-    }
-
-    public function calcDeliveryZd(Request $request)
-    {
-        $from = $request->input('package_from');
-        $to = $request->input('package_to');
-        $route = Zh::where('city_from', $from)->where('city_to', $to)->first();
-        return response()->json($route ? ['price' => $route->price, 'time' => $route->time] : ['price' => null]);
+        return response()->json($calculator->calculate(
+            $data['transport'], (int) $data['package_from'], (int) $data['package_to'], $data,
+        ));
     }
 
     /**

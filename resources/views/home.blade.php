@@ -8,6 +8,14 @@
     .searchCityDelivery ul li { padding: 20px; border: 1px solid #e9e9e9; cursor: pointer; }
     .searchCityDelivery ul li:hover { font-weight: bold; }
     .searchCityDelivery ul li:last-child { border:none; }
+
+    /* Калькулятор доставки */
+    .calc-hint { font-size: 14px; color: #666; margin: 0 0 12px; }
+    .calc-check { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; }
+    .calc-check input { width: 18px; height: 18px; accent-color: #D0171C; }
+    .calc-message { margin-top: 16px; padding: 12px 16px; border-radius: 10px; background: #fdecec; color: #a01215; font-size: 15px; }
+    .calc-notes { margin: 16px 0 0; padding: 12px 16px 12px 34px; border-radius: 10px; background: #f4f6f8; font-size: 15px; }
+    .calc-terms { margin: 20px 0 0; padding-left: 18px; font-size: 13px; color: #777; line-height: 1.6; }
 </style>
 @endpush
 
@@ -88,34 +96,23 @@
                             </div>
                             <label class="form-text form_col-1">
                                 <span class="form-text__desc form-text__desc_top">Масса (кг)</span>
-                                <input type="number" name="package_weight" min="1" step="0.1" placeholder="" required>
-                                <span class="form-text__desc form-text__desc_bottom">От 1 кг</span>
+                                <input type="number" name="package_weight" min="0.1" step="0.1" placeholder="" required>
+                                <span class="form-text__desc form-text__desc_bottom">Фактический вес</span>
                             </label>
                         </div>
-                        <div class="form__row calc_type">
-                            <label class="form-radio">
-                                <input type="radio" name="calc_type" value="weight" checked>
-                                <span class="form-radio__label"></span>
-                                <span class="form-radio__desc">Считать по весу</span>
-                            </label>
-                            <label class="form-radio">
-                                <input type="radio" name="calc_type" value="volume">
-                                <span class="form-radio__label"></span>
-                                <span class="form-radio__desc">Считать по объему</span>
-                            </label>
-                        </div>
+                        <p class="calc-hint">Габариты необязательны: если их указать, считаем по большему из весов — фактическому или объёмному (Д × Ш × В / 5000).</p>
                         <div class="form__row" id="volume">
                             <label class="form-text form_col-1">
                                 <span class="form-text__desc form-text__desc_top">Длина (см)</span>
-                                <input disabled type="number" name="package_length" min="1" step="0.1" placeholder="" required="">
+                                <input type="number" name="package_length" min="0" step="0.1" placeholder="">
                             </label>
                             <label class="form-text form_col-1">
                                 <span class="form-text__desc form-text__desc_top">Ширина (см)</span>
-                                <input disabled type="number" name="package_width" min="1" step="0.1" placeholder="" required="">
+                                <input type="number" name="package_width" min="0" step="0.1" placeholder="">
                             </label>
                             <label class="form-text form_col-1">
                                 <span class="form-text__desc form-text__desc_top">Высота (см)</span>
-                                <input disabled type="number" name="package_height" min="1" step="0.1" placeholder="" required="">
+                                <input type="number" name="package_height" min="0" step="0.1" placeholder="">
                             </label>
                         </div>
                         <div class="form__row">
@@ -134,21 +131,43 @@
                                 <span class="form-radio__label"></span>
                                 <span class="form-radio__desc">ЖД доставка</span>
                             </label>
-                            <span class="_error" style="display:none;">По данному направлению нету маршрутов</span>
+                        </div>
+                        <div class="form__row">
+                            <label class="calc-check">
+                                <input type="checkbox" name="non_stackable" value="1">
+                                Нештабелируемый груз (на него нельзя ставить другие грузы)
+                            </label>
                         </div>
                         <div class="form__row form__row_end">
                             <div class="form-result form_col-4">
                                 <span class="form-result__desc">Объемный вес:</span>
-                                <div class="form-result__val_p"><span class="form-result__symb">кг</span></div>
+                                <div class="form-result__val_p calc-volume">-<span class="form-result__symb">кг</span></div>
+                            </div>
+                            <div class="form-result form_col-4">
+                                <span class="form-result__desc">Расчётный вес:</span>
+                                <div class="form-result__val_p calc-chargeable">-<span class="form-result__symb">кг</span></div>
+                            </div>
+                            <div class="form-result form_col-4">
+                                <span class="form-result__desc">Срок доставки:</span>
+                                <div class="form-result__val_p calc-time">-</div>
                             </div>
                         </div>
                         <div class="form__row form__row_end">
                             <div class="form-result form_col-4">
                                 <span class="form-result__desc">Итого:</span>
-                                <div class="form-result__val">-<span class="form-result__symb">₸</span></div>
+                                <div class="form-result__val calc-total">-<span class="form-result__symb">₸</span></div>
                             </div>
                             <button type="submit" class="btn form__submit form_col-1">Рассчитать</button>
                         </div>
+                        <div class="calc-message" hidden></div>
+                        <ul class="calc-notes" hidden></ul>
+                        <ul class="calc-terms">
+                            <li>Цены с НДС 16%, доставка «от двери до двери».</li>
+                            <li>Минимальный сбор — 9 800 ₸ за отправление до 20 кг, каждый следующий килограмм — по тарифу направления.</li>
+                            <li>Негабарит (длина больше 3 м, ширина больше 2 м, высота больше 1,8 м или вес больше 500 кг) — коэффициент 1,3; нештабелируемый груз — коэффициент 2.</li>
+                            <li>Отгрузка в регионы — по средам и пятницам. Грузы тяжелее 20 кг принимаем и доставляем до подъезда здания.</li>
+                            <li>Погрузка и разгрузка — силами клиента, грузчиков организуем по запросу.</li>
+                        </ul>
                     </form>
                 </div>
             </div>
@@ -321,24 +340,6 @@
 @push('scripts')
 <script>
 window.addEventListener('load', function(){
-    const calc_type = document.querySelector('.calc_type');
-    const volume = document.querySelector('#volume');
-    const fieldPackageWeight = document.querySelector('input[name="package_weight"]');
-    if(calc_type && volume){
-        calc_type.addEventListener('change', function(e){
-            if(e.target.closest('input[name]')){
-                let value = e.target.closest('input[name]').value;
-                if(value === 'volume'){
-                    volume.querySelectorAll('input').forEach(node => node.disabled = false);
-                    fieldPackageWeight.disabled = true;
-                }else{
-                    volume.querySelectorAll('input').forEach(node => node.disabled = true);
-                    fieldPackageWeight.disabled = false;
-                }
-            }
-        })
-    }
-
     document.querySelector('input[name="package_from"]').addEventListener('input', function(){ autocompleteCity.call(this); })
     document.querySelector('input[name="package_to"]').addEventListener('input', function(){ autocompleteCity.call(this); })
 
@@ -389,104 +390,59 @@ window.addEventListener('load', function(){
         }
     })
 
-    document.querySelector('form.package__form').addEventListener('submit', function(e){
-        e.preventDefault();
-        let package_from = document.querySelector('input[name="package_from"][data-city]').dataset.city;
-        let package_to = document.querySelector('input[name="package_to"][data-city]').dataset.city;
-        let params = {};
-        if(document.querySelector('input[name="package_weight"]:not(:disabled)')){
-            params['package_weight'] = parseFloat(document.querySelector('input[name="package_weight"]').value);
-        }else{
-            params['package_length'] = parseFloat(document.querySelector('input[name="package_length"]').value);
-            params['package_width'] = parseFloat(document.querySelector('input[name="package_width"]').value);
-            params['package_height'] = parseFloat(document.querySelector('input[name="package_height"]').value);
-        }
-        let package_transport = document.querySelector('input[name="package_transport"]:checked').value.trim();
-        if(parseInt(package_from) === 0 || parseInt(package_to)=== 0){ alert('Выберите города!'); return false; }
-        if(package_transport === 'air') Air(package_from, package_to, params);
-        else if(package_transport === 'railway') Railway(package_from, package_to, params);
-        else if(package_transport === 'car') Car(package_from, package_to, params);
-    })
-
     function formatNumber(number) {
-        let n = new Intl.NumberFormat("ru-RU").format(number);
-        return String(n).trim() === "не число" ? 0 : n;
+        return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(number || 0);
     }
 
-    function Railway(package_from, package_to, params){
+    // Расчёт целиком на сервере (App\Support\DeliveryCalculator) — здесь только показ.
+    const calcForm = document.querySelector('form.package__form');
+    const setVal = (sel, text) => { calcForm.querySelector(sel).childNodes[0].nodeValue = text; };
+    const fieldNum = (name) => parseFloat(calcForm.querySelector(`input[name="${name}"]`).value) || 0;
+    const transport = () => calcForm.querySelector('input[name="package_transport"]:checked').value;
+
+    calcForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        const from = calcForm.querySelector('input[name="package_from"]').dataset.city;
+        const to = calcForm.querySelector('input[name="package_to"]').dataset.city;
+        if (parseInt(from) === 0 || parseInt(to) === 0) { alert('Выберите города из списка'); return; }
+
+        const message = calcForm.querySelector('.calc-message');
+        const notes = calcForm.querySelector('.calc-notes');
+        message.hidden = true; notes.hidden = true; notes.innerHTML = '';
+
         $.ajax({
-            url: '/ajax/calcDeliveryZd', method: 'post',
-            data: {package_from, package_to},
-            success: (res) => {
-                if(typeof res === 'string') res = JSON.parse(res.trim());
-                let data = res;
-                if(!('package_weight' in params)){
-                    params['package_weight'] = (params['package_length'] * params['package_width'] * params['package_height'])/6000;
-                    document.querySelector('.form-result__val_p').textContent = formatNumber(params['package_weight']);
+            url: '/ajax/calcDelivery', method: 'post',
+            data: {
+                package_from: from, package_to: to, transport: transport(),
+                weight: fieldNum('package_weight'),
+                length: fieldNum('package_length'), width: fieldNum('package_width'), height: fieldNum('package_height'),
+                non_stackable: calcForm.querySelector('input[name="non_stackable"]').checked ? 1 : 0,
+            },
+            success: (data) => {
+                if (typeof data === 'string') data = JSON.parse(data.trim());
+                setVal('.calc-volume', data.volume_weight ? formatNumber(data.volume_weight) + ' ' : '- ');
+                setVal('.calc-chargeable', formatNumber(data.chargeable_weight) + ' ');
+                if (!data.found) {
+                    setVal('.calc-time', '-');
+                    setVal('.calc-total', '- ');
+                    message.textContent = 'По этому направлению стоимость рассчитывается индивидуально — позвоните нам: +7 771 775 57 13.';
+                    message.hidden = false;
+                    return;
                 }
-                if(data.price){
-                    if(params.package_weight <= 20){ document.querySelector('.form-result__val').childNodes[0].nodeValue = formatNumber(6500); return false; }
-                    let price = 6500;
-                    if(params.package_weight > 20){ params.package_weight = params.package_weight - 20; price += params.package_weight * parseFloat(data.price); }
-                    document.querySelector('.form-result__val').childNodes[0].nodeValue = formatNumber(price);
-                }else{
-                    document.querySelector('.form-result__val').childNodes[0].nodeValue = formatNumber(0);
-                    alert('По такому направлению не возим!');
+                setVal('.calc-time', data.time || '-');
+                setVal('.calc-total', formatNumber(data.price) + ' ');
+                const lines = (data.notes || []).slice();
+                if (transport() !== 'air' && data.chargeable_weight > 20) {
+                    lines.unshift('9 800 ₸ за первые 20 кг + ' + formatNumber(data.chargeable_weight - 20) + ' кг × ' + formatNumber(data.rate) + ' ₸');
                 }
-            }
-        })
-    }
-
-    function Car(package_from, package_to, params){
-        $.ajax({
-            url: '/ajax/calcDeliveryCar', method: 'post',
-            data: {package_from, package_to},
-            success: (res) => {
-                if(typeof res === 'string') res = JSON.parse(res.trim());
-                let data = res;
-                if(!('package_weight' in params)){
-                    params['package_weight'] = (params['package_length'] * params['package_width'] * params['package_height'])/6000;
-                    document.querySelector('.form-result__val_p').textContent = formatNumber(params['package_weight']);
+                if (lines.length) {
+                    notes.innerHTML = lines.map(t => '<li>' + t + '</li>').join('');
+                    notes.hidden = false;
                 }
-                if(data.price){
-                    if(params['package_weight'] <= 20){ document.querySelector('.form-result__val').childNodes[0].nodeValue = formatNumber(6500); return false; }
-                    let price = 6500;
-                    if(params['package_weight'] > 20){ params['package_weight'] = params['package_weight'] - 20; price += params['package_weight'] * parseFloat(data.price); }
-                    document.querySelector('.form-result__val').childNodes[0].nodeValue = formatNumber(price);
-                }else{
-                    let price = 8500;
-                    if(params['package_weight'] > 20){ params['package_weight'] = params['package_weight'] - 20; price += params['package_weight'] * 200; }
-                    document.querySelector('.form-result__val_p').textContent = formatNumber(params['package_weight']);
-                    document.querySelector('.form-result__val').childNodes[0].nodeValue = formatNumber(price);
-                }
-            }
-        })
-    }
-
-    function Air(package_from, package_to, params){
-        $.ajax({
-            url: '/ajax/calcDeliveryAir', method: 'post',
-            data: {package_from, package_to},
-            success: (res) => {
-                if(typeof res === 'string') res = JSON.parse(res.trim());
-                let data = res;
-                if(!('package_weight' in params)){
-                    params['package_weight'] = (params['package_length'] * params['package_width'] * params['package_height'])/6000;
-                    document.querySelector('.form-result__val_p').textContent = formatNumber(params['package_weight']);
-                }
-                if(data.price){
-                    let price = parseInt(data.price);
-                    if(params['package_weight'] > 3){ params['package_weight'] = params['package_weight'] - 3; price += params['package_weight'] * 850; }
-                    document.querySelector('.form-result__val').childNodes[0].nodeValue = formatNumber(price);
-                }else{
-                    let price = 15000;
-                    if(params['package_weight'] > 3){ params['package_weight'] = params['package_weight'] - 3; price += params['package_weight'] * 1200; }
-                    document.querySelector('.form-result__val').childNodes[0].nodeValue = formatNumber(price);
-                }
-            }
-        })
-    }
-
+            },
+            error: () => { alert('Проверьте вес и габариты груза'); }
+        });
+    });
 })
 </script>
 @endpush
