@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Admin;
 use App\Models\Staff;
+use App\Support\CourierReport;
 use App\Support\InvoiceInlineFields;
 use App\Support\MasterPassword;
 use App\Models\User;
@@ -400,6 +401,76 @@ class AdminController extends Controller
             'meta' => $meta ?: null,
             'created_at' => now(),
         ]);
+    }
+
+    // === ОТЧЁТ ПО КУРЬЕРАМ ===
+    public function courierReport(Request $request, CourierReport $report)
+    {
+        if ($r = $this->checkAuth(['admin', 'dispatcher'])) return $r;
+        $filters = $this->courierReportFilters($request);
+        $data = $report->build($filters['from'], $filters['to'], $filters['courier']);
+        $couriers = Staff::orderBy('full_name')->get()
+            ->filter(fn ($s) => array_intersect($s->roleNames(), Staff::COURIER_ROLES) !== [])
+            ->values();
+
+        return view('admin.reports.couriers', $data + $filters + [
+            'couriers' => $couriers,
+            'presets' => CourierReport::presets(),
+        ]);
+    }
+
+    public function courierReportPdf(Request $request, CourierReport $report)
+    {
+        if ($r = $this->checkAuth(['admin', 'dispatcher'])) return $r;
+        $filters = $this->courierReportFilters($request);
+        $data = $report->build($filters['from'], $filters['to'], $filters['courier']);
+
+        $name = 'otchet_kurery_' . $filters['from']->format('Y-m-d')
+            . ($filters['from']->equalTo($filters['to']) ? '' : '_' . $filters['to']->format('Y-m-d')) . '.pdf';
+
+        return \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.reports.couriers_pdf', $data + $filters + [
+            'detailed' => $request->boolean('detailed', true),
+        ])->setPaper('a4', 'portrait')->download($name);
+    }
+
+    /** Период и курьер из запроса: ?preset=today|… или ?from=Y-m-d&to=Y-m-d, ?courier=id. */
+    private function courierReportFilters(Request $request): array
+    {
+        $presets = CourierReport::presets();
+        $preset = (string) $request->input('preset', '');
+        $parse = function ($v) {
+            try {
+                return $v ? \Illuminate\Support\Carbon::createFromFormat('Y-m-d', (string) $v)->startOfDay() : null;
+            } catch (\Throwable) {
+                return null;
+            }
+        };
+        $from = $parse($request->input('from'));
+        $to = $parse($request->input('to'));
+
+        if (isset($presets[$preset]) || ! $from) {
+            $preset = isset($presets[$preset]) ? $preset : 'today';
+            [, $from, $to] = $presets[$preset];
+        } else {
+            $preset = '';
+            $to ??= $from->copy();
+            if ($from->gt($to)) {
+                [$from, $to] = [$to, $from];
+            }
+            if ($from->diffInDays($to) > 366) {
+                $from = $to->copy()->subDays(366);
+            }
+        }
+
+        $courier = (int) $request->input('courier', 0);
+
+        return [
+            'preset' => $preset,
+            'from' => $from,
+            'to' => $to,
+            'courier' => $courier > 0 ? $courier : null,
+            'courierName' => $courier > 0 ? optional(Staff::find($courier))->full_name : null,
+        ];
     }
 
     // === ORDERS ===

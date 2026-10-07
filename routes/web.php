@@ -74,6 +74,8 @@ Route::get('/admin/invoices/print/{id}', [AdminController::class, 'printInvoice'
 Route::post('/admin/invoices/status/{id}', [AdminController::class, 'updateInvoiceStatus']);
 Route::post('/admin/invoices/update/{id}', [AdminController::class, 'updateInvoice']);
 Route::post('/admin/invoices/{id}/field', [AdminController::class, 'updateInvoiceField'])->whereNumber('id');
+Route::get('/admin/reports/couriers', [AdminController::class, 'courierReport']);
+Route::get('/admin/reports/couriers/pdf', [AdminController::class, 'courierReportPdf']);
 Route::get('/admin/orders', [AdminController::class, 'orders']);
 Route::get('/admin/orders/create', [AdminController::class, 'createOrder']);
 Route::post('/admin/orders/store', [AdminController::class, 'storeOrder']);

@@ -77,6 +77,9 @@
                     ->count();
             @endphp
             <li><a href="/admin/invoices"><i class="fas fa-file-invoice"></i> Накладные <span id="invoice-badge" style="background:#D0171C;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:5px;{{ $newInvoicesCount > 0 ? '' : 'display:none' }}">{{ $newInvoicesCount }}</span></a></li>
+            @if(array_intersect($panelRoles, ['admin', 'dispatcher']) !== [])
+                <li><a href="/admin/reports/couriers"><i class="fas fa-chart-bar"></i> Отчёт по курьерам</a></li>
+            @endif
             @if(in_array('admin', $panelRoles, true))
                 <li><a href="/admin/orders"><i class="fas fa-truck"></i> Заказы/Трекинг</a></li>
                 <li><a href="/admin/news"><i class="fas fa-newspaper"></i> Новости</a></li>
