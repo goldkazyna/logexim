@@ -186,7 +186,9 @@ class Invoice extends Model
                 ? []
                 : $this->buildSteps(array_slice(self::STATUSES, 0, 4, true), $status),
             'local' => $this->isLocalDelivery(),
-            'detail_steps' => $cancelled || $detail <= 0 ? [] : $this->trackSteps('public'),
+            // Новая заявка (оба статуса 0) — сразу настоящий путь. Пустой путь —
+            // только у старых накладных, которые вели одним общим статусом.
+            'detail_steps' => $cancelled || ($detail <= 0 && $status > 0) ? [] : $this->trackSteps('public'),
         ];
     }
 

@@ -66,6 +66,18 @@ class InvoicePublicTrackingTest extends TestCase
         $this->assertSame([], $tracking['detail_steps']);
     }
 
+    public function test_new_invoice_shows_real_path_from_the_start(): void
+    {
+        $tracking = $this->invoice(['status' => 0, 'detail_status' => 0])->publicTracking();
+
+        $this->assertCount(7, $tracking['detail_steps']);
+        $this->assertSame('current', $tracking['detail_steps'][0]['state']);
+        $this->assertSame('Выведен на доставку', $tracking['detail_steps'][1]['title']);
+
+        $local = $this->invoice(['status' => 0, 'detail_status' => 0, 'same_city' => true])->publicTracking();
+        $this->assertSame(['Заявка создана', 'Курьер забрал груз', 'Доставлен'], array_column($local['detail_steps'], 'title'));
+    }
+
     public function test_cancelled_invoice_has_no_chain(): void
     {
         $tracking = $this->invoice(['status' => 4])->publicTracking();
