@@ -48,7 +48,7 @@ class AdminInlineEditTest extends TestCase
             ->assertOk()->assertJson(['value' => 'Шымкент']);
 
         $this->assertSame('Шымкент', $this->inv->refresh()->recipient_city);
-        $this->assertDatabaseHas('invoice_events', ['invoice_id' => $this->inv->id, 'event' => 'party_changed']);
+        $this->assertDatabaseHas('invoice_events', ['invoice_id' => $this->inv->id, 'event' => 'field_changed']);
         $this->get("/admin/invoices/view/{$this->inv->id}")->assertSee('Город получателя: «Астана» → «Шымкент»', false);
     }
 
@@ -64,12 +64,65 @@ class AdminInlineEditTest extends TestCase
 
     public function test_only_party_fields_and_only_admin_or_dispatcher(): void
     {
-        $this->admin()->postJson("/admin/invoices/{$this->inv->id}/field", ['field' => 'payment', 'value' => '0'])
+        $this->admin()->postJson("/admin/invoices/{$this->inv->id}/field", ['field' => 'status', 'value' => '4'])
             ->assertStatus(422);
 
         $this->withSession(['role' => 'courier', 'roles' => ['courier'], 'staff_id' => 5])
             ->postJson("/admin/invoices/{$this->inv->id}/field", ['field' => 'sender_name', 'value' => 'X'])
             ->assertStatus(403);
         $this->assertSame('Иванов', $this->inv->refresh()->sender_name);
+    }
+
+    public function test_cargo_fields_are_editable_with_type_checks(): void
+    {
+        $id = $this->inv->id;
+        $this->admin()->postJson("/admin/invoices/{$id}/field", ['field' => 'quantity', 'value' => '0'])->assertStatus(422);
+        $this->postJson("/admin/invoices/{$id}/field", ['field' => 'weight', 'value' => 'abc'])->assertStatus(422);
+
+        $this->postJson("/admin/invoices/{$id}/field", ['field' => 'quantity', 'value' => '3'])->assertOk()->assertJson(['display' => '3']);
+        $this->postJson("/admin/invoices/{$id}/field", ['field' => 'weight', 'value' => '12,5'])->assertOk()->assertJson(['value' => '12.5']);
+        $this->postJson("/admin/invoices/{$id}/field", ['field' => 'volume_weight', 'value' => ''])->assertOk()->assertJson(['display' => '—']);
+        $this->postJson("/admin/invoices/{$id}/field", ['field' => 'fragile', 'value' => '1'])->assertOk()->assertJson(['display' => 'Да']);
+        $this->postJson("/admin/invoices/{$id}/field", ['field' => 'description', 'value' => "Документы\nи образцы"])->assertOk();
+
+        $inv = $this->inv->refresh();
+        $this->assertSame(3, (int) $inv->quantity);
+        $this->assertEquals(12.5, (float) $inv->weight);
+        $this->assertNull($inv->volume_weight);
+        $this->assertTrue((bool) $inv->fragile);
+    }
+
+    public function test_payment_fields_are_admin_only(): void
+    {
+        $id = $this->inv->id;
+        $this->withSession(['role' => 'dispatcher', 'roles' => ['dispatcher'], 'staff_id' => 7])
+            ->postJson("/admin/invoices/{$id}/field", ['field' => 'payment', 'value' => '5000'])
+            ->assertStatus(403);
+
+        $this->admin()->postJson("/admin/invoices/{$id}/field", ['field' => 'payment', 'value' => '5000'])
+            ->assertOk()->assertJson(['display' => '5000 KZT']);
+        $this->postJson("/admin/invoices/{$id}/field", ['field' => 'payment_methods', 'value' => ['payment_recipient', 'payment_cash']])
+            ->assertOk()->assertJson(['display' => 'Оплата получателем, Оплата наличными']);
+        $this->postJson("/admin/invoices/{$id}/field", ['field' => 'special', 'value' => 'Звонить заранее'])->assertOk();
+
+        $inv = $this->inv->refresh();
+        $this->assertEquals(5000, (float) $inv->payment);
+        $this->assertTrue((bool) $inv->payment_recipient);
+        $this->assertTrue((bool) $inv->payment_cash);
+        $this->assertFalse((bool) $inv->payment_sender);
+        $this->assertSame('Звонить заранее', $inv->special);
+        $this->get("/admin/invoices/view/{$id}")->assertSee('Способ оплаты: «—» → «Оплата получателем, Оплата наличными»', false);
+    }
+
+    public function test_bulk_save_no_longer_wipes_inline_fields(): void
+    {
+        $this->inv->forceFill(['volume_weight' => 7, 'payment' => 1500])->saveQuietly();
+
+        $this->admin()->post("/admin/invoices/update/{$this->inv->id}", ['date' => '2026-10-07', 'detail_status' => '0'])
+            ->assertRedirect();
+
+        $inv = $this->inv->refresh();
+        $this->assertEquals(7, (float) $inv->volume_weight);
+        $this->assertEquals(1500, (float) $inv->payment);
     }
 }

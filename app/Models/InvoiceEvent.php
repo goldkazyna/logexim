@@ -39,6 +39,7 @@ class InvoiceEvent extends Model
         'date_changed' => 'Изменена дата накладной',
         'cargo_changed' => 'Изменён вес и места',
         'party_changed' => 'Изменены данные отправителя / получателя',
+        'field_changed' => 'Изменены данные накладной',
     ];
 
     public function label(): string

@@ -21,6 +21,11 @@
     .inv-inline__btn:hover { color: #D0171C; }
     .inv-inline__save { color: #D0171C; font-size: 17px; }
     .inv-inline__err { color: #dc3545; font-size: 12px; font-weight: 400; }
+    .inv-inline__form { display: inline-flex; flex-direction: column; gap: 4px; }
+    .inv-inline__form[hidden] { display: none; }
+    textarea.inv-inline__input { width: 420px; max-width: 100%; font-weight: 400; }
+    .inv-inline__check { font-weight: 400; cursor: pointer; }
+    .inv-inline__text { white-space: pre-line; }
     .inv-inline.is-saved .inv-inline__text { color: #28a745; transition: color .3s; }
 </style>
 @endpush
@@ -72,54 +77,33 @@
         <div class="inv-row"><div class="label">Курьер (приём в пункте):</div><div class="value">{{ optional($invoice->receivingCourier)->full_name ?: '— примет любой курьер —' }}</div></div>
 
         <div class="inv-section">Отправитель</div>
-        @include('admin.partials.editable-field', ['label' => 'ФИО отправителя', 'field' => 'sender_name', 'value' => $invoice->sender_name, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Компания', 'field' => 'sender_company', 'value' => $invoice->sender_company, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Телефон', 'field' => 'sender_phone', 'value' => $invoice->sender_phone, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Город', 'field' => 'sender_city', 'value' => $invoice->sender_city, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Область', 'field' => 'sender_region', 'value' => $invoice->sender_region, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Район', 'field' => 'sender_district', 'value' => $invoice->sender_district, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Адрес', 'field' => 'sender_address', 'value' => $invoice->sender_address, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['field' => 'sender_name'])
+        @include('admin.partials.editable-field', ['field' => 'sender_company'])
+        @include('admin.partials.editable-field', ['field' => 'sender_phone'])
+        @include('admin.partials.editable-field', ['field' => 'sender_city'])
+        @include('admin.partials.editable-field', ['field' => 'sender_region'])
+        @include('admin.partials.editable-field', ['field' => 'sender_district'])
+        @include('admin.partials.editable-field', ['field' => 'sender_address'])
 
         <div class="inv-section">Получатель</div>
-        @include('admin.partials.editable-field', ['label' => 'ФИО получателя', 'field' => 'recipient_name', 'value' => $invoice->recipient_name, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Компания', 'field' => 'recipient_company', 'value' => $invoice->recipient_company, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Телефон', 'field' => 'recipient_phone', 'value' => $invoice->recipient_phone, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Город', 'field' => 'recipient_city', 'value' => $invoice->recipient_city, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Область', 'field' => 'recipient_region', 'value' => $invoice->recipient_region, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Район', 'field' => 'recipient_district', 'value' => $invoice->recipient_district, 'canEdit' => $canEdit])
-        @include('admin.partials.editable-field', ['label' => 'Адрес', 'field' => 'recipient_address', 'value' => $invoice->recipient_address, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['field' => 'recipient_name'])
+        @include('admin.partials.editable-field', ['field' => 'recipient_company'])
+        @include('admin.partials.editable-field', ['field' => 'recipient_phone'])
+        @include('admin.partials.editable-field', ['field' => 'recipient_city'])
+        @include('admin.partials.editable-field', ['field' => 'recipient_region'])
+        @include('admin.partials.editable-field', ['field' => 'recipient_district'])
+        @include('admin.partials.editable-field', ['field' => 'recipient_address'])
 
         <div class="inv-section">Описание отправления</div>
-        <div class="inv-row"><div class="label">Описание вложения:</div><div class="value">{{ $invoice->description }}</div></div>
-        <div class="inv-row"><div class="label">Количество мест:</div><div class="value">{{ $invoice->quantity }}</div></div>
-        <div class="inv-row"><div class="label">Вес (кг):</div><div class="value">{{ $invoice->weight }}</div></div>
-        <div class="inv-row"><div class="label">Объёмный вес (кг):</div><div class="value">
-            @if($canEdit)
-            <input type="number" step="0.01" name="volume_weight" class="inv-edit-input" value="{{ $invoice->volume_weight }}" form="edit-invoice-form">
-            @else
-            {{ $invoice->volume_weight }}
-            @endif
-        </div></div>
-        <div class="inv-row"><div class="label">Хрупкий груз:</div><div class="value">{{ $invoice->fragile ? 'Да' : 'Нет' }}</div></div>
+        @foreach(['description', 'quantity', 'weight', 'volume_weight', 'fragile'] as $f)
+        @include('admin.partials.editable-field', ['field' => $f])
+        @endforeach
 
         @if(in_array('admin', $panelRoles, true))
         <div class="inv-section">Информация об оплате</div>
-        <div class="inv-row"><div class="label">Объявленная ценность:</div><div class="value">{{ $invoice->declared_value }} KZT</div></div>
-        <div class="inv-row"><div class="label">Сумма оплаты (KZT):</div><div class="value"><input type="number" step="0.01" name="payment" class="inv-edit-input" value="{{ $invoice->payment }}" form="edit-invoice-form"></div></div>
-        <div class="inv-row"><div class="label">Способ оплаты:</div><div class="value">
-            @php
-                $m = [];
-                if ($invoice->payment_sender) $m[] = 'Оплата отправителем';
-                if ($invoice->payment_recipient) $m[] = 'Оплата получателем';
-                if ($invoice->payment_contract) $m[] = 'Оплата по договору';
-                if ($invoice->payment_invoice) $m[] = 'Оплата по счету';
-                if ($invoice->payment_cash) $m[] = 'Оплата наличными';
-            @endphp
-            {{ implode(', ', $m) ?: '—' }}
-        </div></div>
-        @if($invoice->special)
-        <div class="inv-row"><div class="label">Особые инструкции:</div><div class="value">{{ $invoice->special }}</div></div>
-        @endif
+        @foreach(['declared_value', 'payment', 'payment_methods', 'special'] as $f)
+        @include('admin.partials.editable-field', ['field' => $f])
+        @endforeach
         @endif
 
         @if($invoice->pickup_signature)
@@ -237,33 +221,56 @@
 @if($canEdit)
 @push('scripts')
 <script>
-// Правка отправителя/получателя на месте: карандаш → поле → дискетка (Enter — сохранить, Esc — отмена).
+// Правка полей карточки на месте: карандаш → поле → дискетка.
+// Enter — сохранить (в многострочном поле — Ctrl+Enter), Esc — отмена.
 (function () {
     var url = '/admin/invoices/{{ $invoice->id }}/field';
     document.querySelectorAll('.inv-inline').forEach(function (box) {
+        var type = box.dataset.type;
         var text = box.querySelector('.inv-inline__text');
+        var form = box.querySelector('.inv-inline__form');
         var input = box.querySelector('.inv-inline__input');
+        var checks = box.querySelectorAll('.inv-inline__check input');
         var edit = box.querySelector('.inv-inline__edit');
         var save = box.querySelector('.inv-inline__save');
         var err = box.querySelector('.inv-inline__err');
 
+        // Снимок значения — чтобы Esc возвращал как было.
+        function snapshot() {
+            return type === 'methods'
+                ? Array.prototype.map.call(checks, function (c) { return c.checked; })
+                : input.value;
+        }
+        function restore(v) {
+            if (type === 'methods') checks.forEach(function (c, k) { c.checked = v[k]; });
+            else input.value = v;
+        }
+        function value() {
+            if (type !== 'methods') return input.value;
+            return Array.prototype.filter.call(checks, function (c) { return c.checked; })
+                .map(function (c) { return c.value; });
+        }
+        var saved = snapshot();
+
         function open(on) {
             text.hidden = on; edit.hidden = on;
-            input.hidden = !on; save.hidden = !on;
+            form.hidden = !on; save.hidden = !on;
             err.hidden = true;
-            if (on) { input.focus(); input.select(); }
+            if (on && input) { input.focus(); if (input.select) input.select(); }
         }
         edit.addEventListener('click', function () { open(true); });
-        input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); save.click(); }
-            if (e.key === 'Escape') { input.value = input.defaultValue; open(false); }
+        box.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { restore(saved); open(false); }
+            if (e.key === 'Enter' && (type !== 'textarea' || e.ctrlKey)) { e.preventDefault(); save.click(); }
         });
         save.addEventListener('click', function () {
             save.disabled = true;
-            $.post(url, { field: box.dataset.field, value: input.value })
+            $.post(url, { field: box.dataset.field, value: value() })
                 .done(function (res) {
-                    input.value = input.defaultValue = res.value;
-                    text.textContent = res.value !== '' ? res.value : '—';
+                    if (type === 'methods') checks.forEach(function (c) { c.checked = res.value.indexOf(c.value) !== -1; });
+                    else input.value = res.value;
+                    saved = snapshot();
+                    text.textContent = res.display;
                     open(false);
                     box.classList.add('is-saved');
                     setTimeout(function () { box.classList.remove('is-saved'); }, 1500);
