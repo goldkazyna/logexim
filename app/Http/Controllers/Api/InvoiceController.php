@@ -60,7 +60,10 @@ class InvoiceController extends Controller
                 'recipient_name' => $request->input('recipient_name', ''),
                 'recipient_phone' => $request->input('recipient_phone', ''),
                 'recipient_company' => $request->input('recipient_company', ''),
-                'recipient_city' => $request->input('recipient_city', ''),
+                'recipient_city' => $request->boolean('same_city')
+                    ? $request->input('sender_city', '')
+                    : $request->input('recipient_city', ''),
+                'same_city' => $request->boolean('same_city'),
                 'recipient_country' => $request->input('recipient_country', ''),
                 'recipient_region' => $request->input('recipient_region', ''),
                 'recipient_district' => $request->input('recipient_district', ''),

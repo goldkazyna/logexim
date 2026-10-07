@@ -51,7 +51,11 @@ h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; bo
                     </div>
                     <div class="mb-4">
                         <label for="sender-city" class="text-gray-800 font-bold text-base inline-block mb-2">Город</label>
-                        @include('partials.city-select', ['id' => 'sender-city', 'name' => 'sender_city', 'selected' => $user->city, 'cities' => $cities])
+                        <input type="text" id="sender-city" name="sender_city" class="form-input w-full md:w-1/2" value="{{ $user->city }}" placeholder="Введите город отправителя" required>
+                        <label class="text-gray-800 text-base flex items-center gap-2 mt-2" style="cursor:pointer">
+                            <input type="checkbox" id="same-city" name="same_city" value="1" class="form-checkbox h-5 w-5 text-indigo-600 rounded-md">
+                            Получатель в этом же городе (доставка по городу)
+                        </label>
                     </div>
                     <div class="mb-4">
                         <label for="sender-country" class="text-gray-800 font-bold text-base inline-block mb-2">Страна</label>
@@ -88,7 +92,7 @@ h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; bo
                     </div>
                     <div class="mb-4">
                         <label for="recipient-city" class="text-gray-800 font-bold text-base inline-block mb-2">Город</label>
-                        @include('partials.city-select', ['id' => 'recipient-city', 'name' => 'recipient_city', 'selected' => '', 'cities' => $cities])
+                        <input type="text" id="recipient-city" name="recipient_city" class="form-input w-full md:w-1/2" placeholder="Введите город получателя" required>
                     </div>
                     <div class="mb-4">
                         <label for="recipient-country" class="text-gray-800 font-bold text-base inline-block mb-2">Страна</label>
@@ -216,6 +220,15 @@ h2 { background-color: #D0171C; color:#ffffff !important; text-align: center; bo
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // «Тот же город»: город получателя = город отправителя, поле блокируется.
+    function syncSameCity() {
+        var same = $('#same-city').is(':checked');
+        if (same) { $('#recipient-city').val($('#sender-city').val()); }
+        $('#recipient-city').prop('readonly', same).toggleClass('bg-gray-100', same);
+    }
+    $('#same-city').on('change', syncSameCity);
+    $('#sender-city').on('input change', function() { if ($('#same-city').is(':checked')) syncSameCity(); });
+
     // Открытие модальных окон
     $('#template-button').click(function() { $('#template-modal').removeClass('hidden'); });
     $('#template-button-2').click(function() { $('#template-modal-2').removeClass('hidden'); });
@@ -232,6 +245,7 @@ $(document).ready(function() {
                     $('#sender-phone').val(response.recipient_phone);
                     $('#sender-address').val(response.address);
                     $('#sender-city').val(response.city);
+                    syncSameCity();
                     $('#sender-country').val(response.country);
                     $('#sender-region').val(response.region);
                     $('#sender-district').val(response.district);
@@ -252,7 +266,7 @@ $(document).ready(function() {
                     $('#recipient-name').val(response.recipient_name);
                     $('#recipient-phone').val(response.recipient_phone);
                     $('#recipient-address').val(response.address);
-                    $('#recipient-city').val(response.city);
+                    if (!$('#same-city').is(':checked')) $('#recipient-city').val(response.city);
                     $('#recipient-country').val(response.country || 'Казахстан');
                     $('#recipient-region').val(response.region);
                     $('#recipient-district').val(response.district);

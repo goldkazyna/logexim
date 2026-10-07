@@ -149,8 +149,7 @@ class CabinetController extends Controller
         $user = $this->getUser();
         $templates = RecipientTemplate::where('user_id', $user->id)->get();
         $descriptionTemplates = DescriptionTemplate::where('user_id', $user->id)->get();
-        $cities = CityDelivery::orderBy('title')->get(['id', 'title']);
-        return view('cabinet.invoices.create', compact('user', 'templates', 'descriptionTemplates', 'cities'));
+        return view('cabinet.invoices.create', compact('user', 'templates', 'descriptionTemplates'));
     }
 
     public function saveInvoice(Request $request)
@@ -160,6 +159,10 @@ class CabinetController extends Controller
         $lastNumber = Invoice::max('invoice_number');
         $newNumber = $lastNumber ? $lastNumber + 1 : 900001;
 
+        // Галочка «тот же город» — доставка по городу без склада.
+        $sameCity = $request->boolean('same_city');
+        $recipientCity = $sameCity ? $request->input('sender_city') : $request->input('recipient_city');
+
         Invoice::create([
             'user_id' => $user->id, 'status' => 0, 'invoice_number' => $newNumber,
             'date' => $request->input('date'),
@@ -168,7 +171,7 @@ class CabinetController extends Controller
             'sender_country' => 'Казахстан', 'sender_region' => $request->input('sender_region'),
             'sender_district' => $request->input('sender_district'), 'sender_address' => $request->input('sender_address'),
             'recipient_name' => $request->input('recipient_name'), 'recipient_phone' => $request->input('recipient_phone'),
-            'recipient_company' => $request->input('recipient_company'), 'recipient_city' => $request->input('recipient_city'),
+            'recipient_company' => $request->input('recipient_company'), 'recipient_city' => $recipientCity, 'same_city' => $sameCity,
             'recipient_country' => 'Казахстан', 'recipient_region' => $request->input('recipient_region'),
             'recipient_district' => $request->input('recipient_district'), 'recipient_address' => $request->input('recipient_address'),
             'description' => $request->input('description', ''), 'quantity' => $request->input('quantity', 1),
@@ -370,8 +373,7 @@ class CabinetController extends Controller
     public function addRecipientTemplate()
     {
         if ($r = $this->checkAuth()) return $r;
-        $cities = CityDelivery::orderBy('title')->get(['id', 'title']);
-        return view('cabinet.recipient_templates.add', compact('cities'));
+        return view('cabinet.recipient_templates.add');
     }
 
     public function saveRecipientTemplate(Request $request)
@@ -396,8 +398,7 @@ class CabinetController extends Controller
     {
         if ($r = $this->checkAuth()) return $r;
         $template = RecipientTemplate::findOrFail($id);
-        $cities = CityDelivery::orderBy('title')->get(['id', 'title']);
-        return view('cabinet.recipient_templates.edit', compact('template', 'cities'));
+        return view('cabinet.recipient_templates.edit', compact('template'));
     }
 
     public function updateRecipientTemplate(Request $request)

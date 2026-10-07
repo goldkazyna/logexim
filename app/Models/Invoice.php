@@ -37,11 +37,16 @@ class Invoice extends Model
     ];
 
     /**
-     * Доставка без склада: тот же город или между городами есть прямая связь
+     * Доставка без склада: клиент отметил «тот же город» при создании,
+     * названия городов совпадают или между городами есть прямая связь
      * (см. city_links, задаётся в /admin/cities).
      */
     public function isLocalDelivery(): bool
     {
+        if ($this->same_city) {
+            return true;
+        }
+
         $a = mb_strtolower(trim((string) $this->sender_city));
         $b = mb_strtolower(trim((string) $this->recipient_city));
 
@@ -282,7 +287,7 @@ class Invoice extends Model
         'description', 'quantity', 'weight', 'volume_weight',
         'fragile', 'declared_value', 'payment',
         'payment_sender', 'payment_recipient', 'payment_contract', 'payment_invoice', 'payment_cash',
-        'fact_date', 'plan_date', 'special', 'printed',
+        'fact_date', 'plan_date', 'special', 'printed', 'same_city',
     ];
 
     public function user()
