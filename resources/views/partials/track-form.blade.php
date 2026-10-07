@@ -169,11 +169,10 @@
     function timelineSteps(inv) {
         var rich = inv.detail_steps || [];
         var base = rich.length ? rich : (inv.steps || []);
-        var times = inv.stage_times || {};
         return base.map(function (s, i) {
             var at = null;
             if (rich.length) {
-                at = times[i] || null;
+                at = s.at || null; // сервер уже сопоставил время с шагом
             } else if (i === 0) {
                 at = inv.created_at || null;
             }
@@ -194,13 +193,17 @@
     ];
     var STEP_ICONS_ADMIN = [STEP_ICONS_DETAIL[0], '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>', STEP_ICONS_DETAIL[1], STEP_ICONS_DETAIL[6]];
 
+    // Доставка без склада — 3 шага: заявка, курьер забрал, доставлен.
+    var STEP_ICONS_LOCAL = [STEP_ICONS_DETAIL[0], STEP_ICONS_DETAIL[1], STEP_ICONS_DETAIL[6]];
+
     function renderTimeline(list, steps, planDate) {
         list.innerHTML = '';
         steps.forEach(function (s, i) {
             var li = el('li', 'is-' + s.state);
             var dot = el('span', 'trk__dot');
             if (s.state !== 'done') dot.textContent = String(i + 1);
-            var icons = steps.length === 7 ? STEP_ICONS_DETAIL : STEP_ICONS_ADMIN;
+            var icons = steps.length === 7 ? STEP_ICONS_DETAIL
+                : (steps.length === 3 ? STEP_ICONS_LOCAL : STEP_ICONS_ADMIN);
             var ic = el('span', 'trk__step-ic');
             ic.innerHTML = icons[i] || '';
             var row = el('div', 'trk__row');

@@ -19,21 +19,34 @@ class Invoice extends Model
         6 => 'Доставлено',
     ];
 
+    /** Этап для сотрудников; у доставки без склада — по короткой цепочке. */
     public function detailStatusLabel(): string
     {
-        return self::DETAIL_STATUSES[$this->detail_status] ?? '—';
+        return $this->stageTitle((int) $this->detail_status);
     }
 
-    /**
-     * Клиентские названия этапов для публичного отслеживания на сайте.
-     * Отличаются от операционных DETAIL_STATUSES (их видят курьер, кладовщик
-     * и админка) — здесь язык для получателя груза.
-     */
+    /** Название этапа detail_status с учётом короткой цепочки (для сотрудников). */
+    public function stageTitle(int $detail): string
+    {
+        if ($this->isLocalDelivery()) {
+            return self::LOCAL_STAFF_STATUSES[$this->localStagePos($detail)];
+        }
+
+        return self::DETAIL_STATUSES[$detail] ?? '—';
+    }
+
     /** Клиентские этапы для доставки внутри одного города (без склада). */
     public const LOCAL_DETAIL_STATUSES = [
         0 => 'Заявка создана',
         1 => 'Курьер забрал груз',
         2 => 'Доставлен',
+    ];
+
+    /** Те же этапы без склада — названия для сотрудников (мобилка, админка). */
+    public const LOCAL_STAFF_STATUSES = [
+        0 => 'Заявка создана',
+        1 => 'Курьер забрал',
+        2 => 'Доставлено',
     ];
 
     /**
@@ -50,6 +63,49 @@ class Invoice extends Model
     private function localStagePos(int $detail): int
     {
         return $detail >= 6 ? 2 : ($detail >= 2 ? 1 : 0);
+    }
+
+    /**
+     * Путь накладной по шагам — единый для сайта, мобилки и админки.
+     * Каждый шаг: title, state (done|current|pending), at (дд.мм.гггг чч:мм или null).
+     * У доставки без склада — три шага, время «Курьер забрал» берётся из
+     * события забора (оно ведёт сразу на этап 5), «Доставлен» — из этапа 6.
+     *
+     * @param  'public'|'staff'  $audience  клиентские или рабочие названия этапов
+     * @return list<array{title: string, state: string, at: ?string}>
+     */
+    public function trackSteps(string $audience = 'public'): array
+    {
+        $this->loadMissing('events');
+        $detail = (int) $this->detail_status;
+        $times = $this->stageTimes();
+        if (!isset($times[6]) && !empty($this->delivered_at)) {
+            $times[6] = $this->formatDateTime($this->delivered_at);
+        }
+
+        if ($this->isLocalDelivery()) {
+            $titles = $audience === 'staff' ? self::LOCAL_STAFF_STATUSES : self::LOCAL_DETAIL_STATUSES;
+            $pickedAt = null;
+            foreach ([2, 3, 4, 5] as $stage) {
+                if (isset($times[$stage])) {
+                    $pickedAt = $times[$stage];
+                    break;
+                }
+            }
+            $stepTimes = [$times[0] ?? null, $pickedAt, $times[6] ?? null];
+            $current = $this->localStagePos($detail);
+        } else {
+            $titles = $audience === 'staff' ? self::DETAIL_STATUSES : self::PUBLIC_DETAIL_STATUSES;
+            $stepTimes = array_map(fn ($i) => $times[$i] ?? null, array_keys($titles));
+            $current = $detail;
+        }
+
+        $steps = $this->buildSteps($titles, $current);
+        foreach ($steps as $i => &$step) {
+            $step['at'] = $step['state'] === 'pending' ? null : ($stepTimes[$i] ?? null);
+        }
+
+        return $steps;
     }
 
     public const PUBLIC_DETAIL_STATUSES = [
@@ -129,11 +185,8 @@ class Invoice extends Model
             'steps' => $cancelled || ! $known
                 ? []
                 : $this->buildSteps(array_slice(self::STATUSES, 0, 4, true), $status),
-            'detail_steps' => $cancelled || $detail <= 0
-                ? []
-                : ($this->isLocalDelivery()
-                    ? $this->buildSteps(self::LOCAL_DETAIL_STATUSES, $this->localStagePos($detail))
-                    : $this->buildSteps(self::PUBLIC_DETAIL_STATUSES, $detail)),
+            'local' => $this->isLocalDelivery(),
+            'detail_steps' => $cancelled || $detail <= 0 ? [] : $this->trackSteps('public'),
         ];
     }
 

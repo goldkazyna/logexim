@@ -303,6 +303,11 @@ class AdminController extends Controller
         $detail = $request->input('detail_status');
         $data['detail_status'] = $detail !== null && $detail !== '' ? (int) $detail : 0;
 
+        // Галочка «тот же город» — путь без склада; клиент мог забыть её поставить.
+        if ($request->has('same_city')) {
+            $data['same_city'] = $request->boolean('same_city');
+        }
+
         $invoice->update($data);
 
         if ($oldDetail !== (int) $data['detail_status']) {

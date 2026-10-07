@@ -602,7 +602,7 @@ class StaffInvoiceController extends Controller
             'number' => $inv->invoice_number,
             'status' => (int) $inv->status,
             'detail_status' => $detailStatus,
-            'detail_status_label' => Invoice::DETAIL_STATUSES[$detailStatus] ?? '',
+            'detail_status_label' => $inv->stageTitle($detailStatus),
             'local' => $inv->isLocalDelivery(),
             'status_key' => $statusKey,
             'created_at' => $createdAt,
@@ -655,6 +655,8 @@ class StaffInvoiceController extends Controller
         ];
 
         if ($full) {
+            // Готовый путь накладной с реальным временем этапов (для мобилки).
+            $data['timeline'] = (int) $inv->status === 4 ? [] : $inv->trackSteps('staff');
             $data['plan_date'] = $inv->plan_date;
             $data['fact_date'] = $inv->fact_date;
             $data['special'] = (string) $inv->special;

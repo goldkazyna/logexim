@@ -62,6 +62,15 @@
             {{ $invoice->detailStatusLabel() }}
             @endif
         </div></div>
+        <div class="inv-row"><div class="label">Без склада:</div><div class="value">
+            @if($canEdit)
+            <input type="hidden" name="same_city" value="0" form="edit-invoice-form">
+            <label style="cursor:pointer"><input type="checkbox" name="same_city" value="1" form="edit-invoice-form" @checked($invoice->isLocalDelivery())>
+                получатель в том же городе — короткий путь (заявка → курьер забрал → доставлено)</label>
+            @else
+            {{ $invoice->isLocalDelivery() ? 'Да — получатель в том же городе' : 'Нет' }}
+            @endif
+        </div></div>
         {{-- Курьеров заранее не назначают: кто отсканировал накладную, тот и
              закрепляется автоматически. Здесь показываем, кто уже взял. --}}
         <div class="inv-row"><div class="label">Курьер (отправка):</div><div class="value">{{ optional($invoice->courier)->full_name ?: '— заберёт любой курьер —' }}</div></div>
@@ -184,7 +193,7 @@
                         @endphp
                         {{ $actor }}@if($roleRu) ({{ $roleRu }})@endif
                         @if($ev->from_detail_status !== null && $ev->to_detail_status !== null)
-                            · {{ \App\Models\Invoice::DETAIL_STATUSES[$ev->from_detail_status] ?? '?' }} → {{ \App\Models\Invoice::DETAIL_STATUSES[$ev->to_detail_status] ?? '?' }}
+                            · {{ $invoice->stageTitle((int) $ev->from_detail_status) }} → {{ $invoice->stageTitle((int) $ev->to_detail_status) }}@if($invoice->isLocalDelivery()) (без склада)@endif
                         @endif
                         @if(isset($ev->meta['courier_name']))
                             · назначен курьер: {{ $ev->meta['courier_name'] }}
