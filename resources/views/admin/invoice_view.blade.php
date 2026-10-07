@@ -15,6 +15,13 @@
     .inv-save-btn { background: #D0171C; color: #fff; border: none; border-radius: 6px; padding: 8px 24px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px; }
     .inv-save-btn:hover { background: #a01215; }
     .inv-success { color: #28a745; font-weight: 600; margin-left: 10px; display: none; }
+    .inv-inline { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .inv-inline__input { width: 320px; max-width: 100%; }
+    .inv-inline__btn { border: none; background: none; color: #999; cursor: pointer; padding: 2px 4px; font-size: 14px; }
+    .inv-inline__btn:hover { color: #D0171C; }
+    .inv-inline__save { color: #D0171C; font-size: 17px; }
+    .inv-inline__err { color: #dc3545; font-size: 12px; font-weight: 400; }
+    .inv-inline.is-saved .inv-inline__text { color: #28a745; transition: color .3s; }
 </style>
 @endpush
 @section('content')
@@ -65,16 +72,22 @@
         <div class="inv-row"><div class="label">Курьер (приём в пункте):</div><div class="value">{{ optional($invoice->receivingCourier)->full_name ?: '— примет любой курьер —' }}</div></div>
 
         <div class="inv-section">Отправитель</div>
-        <div class="inv-row"><div class="label">ФИО отправителя:</div><div class="value">{{ $invoice->sender_name }}</div></div>
-        <div class="inv-row"><div class="label">Компания:</div><div class="value">{{ $invoice->sender_company }}</div></div>
-        <div class="inv-row"><div class="label">Телефон:</div><div class="value">{{ $invoice->sender_phone }}</div></div>
-        <div class="inv-row"><div class="label">Адрес:</div><div class="value">{{ $invoice->sender_address }}, {{ $invoice->sender_city }}, {{ $invoice->sender_region }}, {{ $invoice->sender_country }}</div></div>
+        @include('admin.partials.editable-field', ['label' => 'ФИО отправителя', 'field' => 'sender_name', 'value' => $invoice->sender_name, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Компания', 'field' => 'sender_company', 'value' => $invoice->sender_company, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Телефон', 'field' => 'sender_phone', 'value' => $invoice->sender_phone, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Город', 'field' => 'sender_city', 'value' => $invoice->sender_city, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Область', 'field' => 'sender_region', 'value' => $invoice->sender_region, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Район', 'field' => 'sender_district', 'value' => $invoice->sender_district, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Адрес', 'field' => 'sender_address', 'value' => $invoice->sender_address, 'canEdit' => $canEdit])
 
         <div class="inv-section">Получатель</div>
-        <div class="inv-row"><div class="label">ФИО получателя:</div><div class="value">{{ $invoice->recipient_name }}</div></div>
-        <div class="inv-row"><div class="label">Компания:</div><div class="value">{{ $invoice->recipient_company }}</div></div>
-        <div class="inv-row"><div class="label">Телефон:</div><div class="value">{{ $invoice->recipient_phone }}</div></div>
-        <div class="inv-row"><div class="label">Адрес:</div><div class="value">{{ $invoice->recipient_address }}, {{ $invoice->recipient_city }}, {{ $invoice->recipient_region }}, {{ $invoice->recipient_country }}</div></div>
+        @include('admin.partials.editable-field', ['label' => 'ФИО получателя', 'field' => 'recipient_name', 'value' => $invoice->recipient_name, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Компания', 'field' => 'recipient_company', 'value' => $invoice->recipient_company, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Телефон', 'field' => 'recipient_phone', 'value' => $invoice->recipient_phone, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Город', 'field' => 'recipient_city', 'value' => $invoice->recipient_city, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Область', 'field' => 'recipient_region', 'value' => $invoice->recipient_region, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Район', 'field' => 'recipient_district', 'value' => $invoice->recipient_district, 'canEdit' => $canEdit])
+        @include('admin.partials.editable-field', ['label' => 'Адрес', 'field' => 'recipient_address', 'value' => $invoice->recipient_address, 'canEdit' => $canEdit])
 
         <div class="inv-section">Описание отправления</div>
         <div class="inv-row"><div class="label">Описание вложения:</div><div class="value">{{ $invoice->description }}</div></div>
@@ -195,6 +208,9 @@
                             @endphp
                             · статус: {{ $statuses[$ev->meta['from_status']] ?? '?' }} → {{ $statuses[$ev->meta['to_status']] ?? '?' }}
                         @endif
+                        @if(isset($ev->meta['field_label']))
+                            · {{ $ev->meta['field_label'] }}: «{{ $ev->meta['from'] ?? '' }}» → «{{ $ev->meta['to'] ?? '' }}»
+                        @endif
                         @if(isset($ev->meta['from_date']) && isset($ev->meta['to_date']))
                             · дата: {{ \Carbon\Carbon::parse($ev->meta['from_date'])->format('d.m.Y') }} → {{ \Carbon\Carbon::parse($ev->meta['to_date'])->format('d.m.Y') }}
                         @endif
@@ -217,3 +233,49 @@
     </div>
 </div>
 @endsection
+
+@if($canEdit)
+@push('scripts')
+<script>
+// Правка отправителя/получателя на месте: карандаш → поле → дискетка (Enter — сохранить, Esc — отмена).
+(function () {
+    var url = '/admin/invoices/{{ $invoice->id }}/field';
+    document.querySelectorAll('.inv-inline').forEach(function (box) {
+        var text = box.querySelector('.inv-inline__text');
+        var input = box.querySelector('.inv-inline__input');
+        var edit = box.querySelector('.inv-inline__edit');
+        var save = box.querySelector('.inv-inline__save');
+        var err = box.querySelector('.inv-inline__err');
+
+        function open(on) {
+            text.hidden = on; edit.hidden = on;
+            input.hidden = !on; save.hidden = !on;
+            err.hidden = true;
+            if (on) { input.focus(); input.select(); }
+        }
+        edit.addEventListener('click', function () { open(true); });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); save.click(); }
+            if (e.key === 'Escape') { input.value = input.defaultValue; open(false); }
+        });
+        save.addEventListener('click', function () {
+            save.disabled = true;
+            $.post(url, { field: box.dataset.field, value: input.value })
+                .done(function (res) {
+                    input.value = input.defaultValue = res.value;
+                    text.textContent = res.value !== '' ? res.value : '—';
+                    open(false);
+                    box.classList.add('is-saved');
+                    setTimeout(function () { box.classList.remove('is-saved'); }, 1500);
+                })
+                .fail(function (xhr) {
+                    err.textContent = (xhr.responseJSON && xhr.responseJSON.message) || 'Не удалось сохранить';
+                    err.hidden = false;
+                })
+                .always(function () { save.disabled = false; });
+        });
+    });
+})();
+</script>
+@endpush
+@endif

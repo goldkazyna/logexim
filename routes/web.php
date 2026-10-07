@@ -73,6 +73,7 @@ Route::get('/admin/invoices/view/{id}', [AdminController::class, 'viewInvoice'])
 Route::get('/admin/invoices/print/{id}', [AdminController::class, 'printInvoice'])->whereNumber('id');
 Route::post('/admin/invoices/status/{id}', [AdminController::class, 'updateInvoiceStatus']);
 Route::post('/admin/invoices/update/{id}', [AdminController::class, 'updateInvoice']);
+Route::post('/admin/invoices/{id}/field', [AdminController::class, 'updateInvoiceField'])->whereNumber('id');
 Route::get('/admin/orders', [AdminController::class, 'orders']);
 Route::get('/admin/orders/create', [AdminController::class, 'createOrder']);
 Route::post('/admin/orders/store', [AdminController::class, 'storeOrder']);

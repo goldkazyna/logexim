@@ -347,6 +347,59 @@ class AdminController extends Controller
         return redirect('/admin/invoices/view/' . $id)->with('success', 'Данные сохранены');
     }
 
+    /** Поля отправителя/получателя, которые можно править в карточке: колонка => [название, обязательное]. */
+    private const PARTY_FIELDS = [
+        'sender_name' => ['ФИО отправителя', true],
+        'sender_company' => ['Компания отправителя', false],
+        'sender_phone' => ['Телефон отправителя', true],
+        'sender_city' => ['Город отправителя', true],
+        'sender_region' => ['Область отправителя', false],
+        'sender_district' => ['Район отправителя', false],
+        'sender_address' => ['Адрес отправителя', true],
+        'recipient_name' => ['ФИО получателя', true],
+        'recipient_company' => ['Компания получателя', false],
+        'recipient_phone' => ['Телефон получателя', true],
+        'recipient_city' => ['Город получателя', true],
+        'recipient_region' => ['Область получателя', false],
+        'recipient_district' => ['Район получателя', false],
+        'recipient_address' => ['Адрес получателя', true],
+    ];
+
+    // POST /admin/invoices/{id}/field — правка одного поля отправителя/получателя (AJAX)
+    public function updateInvoiceField(Request $request, $id)
+    {
+        if ($r = $this->checkAuth(['admin', 'dispatcher'])) {
+            return response()->json(['message' => 'Нет доступа'], 403);
+        }
+        $invoice = Invoice::findOrFail($id);
+
+        $field = (string) $request->input('field');
+        if (! isset(self::PARTY_FIELDS[$field])) {
+            return response()->json(['message' => 'Это поле менять нельзя'], 422);
+        }
+        [$label, $required] = self::PARTY_FIELDS[$field];
+
+        $value = trim((string) $request->input('value', ''));
+        if ($required && $value === '') {
+            return response()->json(['message' => 'Поле не может быть пустым'], 422);
+        }
+        // Телефон, город, область, район — колонки на 100 символов.
+        $max = preg_match('/_(phone|city|region|district)$/', $field) ? 100 : 255;
+        if (mb_strlen($value) > $max) {
+            return response()->json(['message' => 'Слишком длинное значение'], 422);
+        }
+
+        $old = (string) $invoice->{$field};
+        if ($old !== $value) {
+            $invoice->update([$field => $value]);
+            $this->logAdminEvent($invoice, 'party_changed', null, null, [
+                'field' => $field, 'field_label' => $label, 'from' => $old, 'to' => $value,
+            ]);
+        }
+
+        return response()->json(['value' => $value]);
+    }
+
     private function logAdminEvent(Invoice $invoice, string $event, ?int $fromDetail, ?int $toDetail, array $meta = []): void
     {
         $role = session('role');
