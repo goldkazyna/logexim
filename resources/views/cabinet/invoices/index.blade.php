@@ -2,6 +2,7 @@
 @section('title', 'Накладные')
 @push('styles')
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+@include('partials.stage-progress-styles')
 <style>
     .common_btn { background-color: #D0171C; border-color: #D0171C; border-radius: 10px; color: #ffffff; padding: 8px 20px; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
     .common_btn:hover { background-color: #a21216; }

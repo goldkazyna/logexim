@@ -35,6 +35,77 @@ class Invoice extends Model
         return self::DETAIL_STATUSES[$detail] ?? '—';
     }
 
+    /** Этап 0..6 для показа: у старых накладных detail не вёлся — берём по общему статусу. */
+    public function effectiveStage(): int
+    {
+        $detail = (int) $this->detail_status;
+        if ($detail > 0) {
+            return $detail;
+        }
+
+        return [0 => 0, 1 => 1, 2 => 4, 3 => 6, 4 => 0][(int) $this->status] ?? 0;
+    }
+
+    /**
+     * Этапы для ручной правки в админке: detail_status => название.
+     * Без склада — три шага; средний сохраняет текущий этап, если он 2..5.
+     */
+    public function stageOptions(): array
+    {
+        if (! $this->isLocalDelivery()) {
+            return self::DETAIL_STATUSES;
+        }
+        $detail = (int) $this->detail_status;
+        $picked = $detail >= 2 && $detail <= 5 ? $detail : 5;
+
+        return [0 => self::LOCAL_STAFF_STATUSES[0], $picked => self::LOCAL_STAFF_STATUSES[1], 6 => self::LOCAL_STAFF_STATUSES[2]];
+    }
+
+    /** Какой из stageOptions() сейчас выбран. */
+    public function stageValue(): int
+    {
+        $stage = $this->effectiveStage();
+        if (! $this->isLocalDelivery()) {
+            return $stage;
+        }
+
+        return array_keys($this->stageOptions())[$this->localStagePos($stage)];
+    }
+
+    /** Этап для клиента (кабинет, выгрузка): те же названия, что в отслеживании. */
+    public function publicStageTitle(): string
+    {
+        if ((int) $this->status === self::STATUS_CANCELLED) {
+            return 'Отменена';
+        }
+        $stage = $this->effectiveStage();
+
+        return $this->isLocalDelivery()
+            ? self::LOCAL_DETAIL_STATUSES[$this->localStagePos($stage)]
+            : (self::PUBLIC_DETAIL_STATUSES[$stage] ?? '—');
+    }
+
+    /** Общий статус по этапу — его видит клиент (кабинет, мобилка, отчёты). */
+    public static function statusForStage(int $detail): int
+    {
+        return match (true) {
+            $detail >= 6 => 3,
+            $detail >= 2 => 2,
+            $detail === 1 => 1,
+            default => 0,
+        };
+    }
+
+    protected static function booted(): void
+    {
+        // Общий статус ведётся сам по этапу доставки (кроме отменённых).
+        static::updating(function (Invoice $inv) {
+            if ($inv->isDirty('detail_status') && (int) $inv->status !== self::STATUS_CANCELLED) {
+                $inv->status = self::statusForStage((int) $inv->detail_status);
+            }
+        });
+    }
+
     /** Клиентские этапы для доставки внутри одного города (без склада). */
     public const LOCAL_DETAIL_STATUSES = [
         0 => 'Заявка создана',

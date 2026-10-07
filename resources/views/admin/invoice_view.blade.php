@@ -20,7 +20,6 @@
 @section('content')
 @php
     $canEdit = array_intersect($panelRoles, ['admin', 'dispatcher']) !== [];
-    $statusLabels = [0=>'Заявка создана', 1=>'Принята в работу', 2=>'Отправлено', 3=>'Исполнена', 4=>'Отменена'];
 @endphp
 <div class="inv-back" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
     <a href="/admin/invoices">&larr; Назад к списку</a>
@@ -38,28 +37,17 @@
             {{ \Carbon\Carbon::parse($invoice->date)->format('d.m.Y') }}
             @endif
         </div></div>
-        <div class="inv-row"><div class="label">Статус:</div><div class="value">
-            @if($canEdit)
-            <select name="status" class="inv-edit-input" form="edit-invoice-form" style="width:200px">
-                <option value="0" @if($invoice->status==0) selected @endif>Заявка создана</option>
-                <option value="1" @if($invoice->status==1) selected @endif>Принята в работу</option>
-                <option value="2" @if($invoice->status==2) selected @endif>Отправлено</option>
-                <option value="3" @if($invoice->status==3) selected @endif>Исполнена</option>
-                <option value="4" @if($invoice->status==4) selected @endif>Отменена</option>
-            </select>
-            @else
-            {{ $statusLabels[$invoice->status] ?? '—' }}
-            @endif
-        </div></div>
         <div class="inv-row"><div class="label">Этап доставки:</div><div class="value">
             @if($canEdit)
+            {{-- Шаги — по галочке «Без склада»; общий статус ставится сам по этапу. --}}
             <select name="detail_status" class="inv-edit-input" form="edit-invoice-form" style="width:280px">
-                @foreach(\App\Models\Invoice::DETAIL_STATUSES as $k => $label)
-                    <option value="{{ $k }}" @if((int)$invoice->detail_status === $k) selected @endif>{{ $label }}</option>
+                @foreach($invoice->stageOptions() as $k => $label)
+                    <option value="{{ $k }}" @selected((int) $invoice->status !== 4 && $invoice->stageValue() === $k)>{{ $label }}</option>
                 @endforeach
+                <option value="cancel" @selected((int) $invoice->status === 4)>Отменена</option>
             </select>
             @else
-            {{ $invoice->detailStatusLabel() }}
+            {{ (int) $invoice->status === 4 ? 'Отменена' : $invoice->stageTitle($invoice->effectiveStage()) }}
             @endif
         </div></div>
         <div class="inv-row"><div class="label">Без склада:</div><div class="value">

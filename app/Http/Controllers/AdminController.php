@@ -282,7 +282,6 @@ class AdminController extends Controller
         $oldDate = $invoice->date;
 
         $data = [
-            'status' => $request->input('status'),
             'volume_weight' => $request->input('volume_weight'),
             'plan_date' => $request->input('plan_date'),
             'fact_date' => $request->input('fact_date'),
@@ -300,8 +299,20 @@ class AdminController extends Controller
         // Курьеров через админку не назначают — они закрепляются сами при
         // сканировании. Поля courier_id / receiving_courier_id здесь не трогаем.
 
-        $detail = $request->input('detail_status');
-        $data['detail_status'] = $detail !== null && $detail !== '' ? (int) $detail : 0;
+        // Этап доставки. Общий статус отдельно не правится — его ставит модель
+        // по этапу; «Отменена» — отдельный пункт в том же списке.
+        $stageInput = (string) $request->input('detail_status', '');
+        if ($stageInput === 'cancel') {
+            $data['status'] = 4;
+        } elseif ($stageInput !== '') {
+            $stage = (int) $stageInput;
+            if ($stage !== $invoice->stageValue()) { // этап действительно поменяли
+                $data['detail_status'] = $stage;
+            }
+            if ($oldStatus === 4) { // снимаем отмену
+                $data['status'] = Invoice::statusForStage($data['detail_status'] ?? $invoice->effectiveStage());
+            }
+        }
 
         // Галочка «тот же город» — путь без склада; клиент мог забыть её поставить.
         if ($request->has('same_city')) {
@@ -310,13 +321,18 @@ class AdminController extends Controller
 
         $invoice->update($data);
 
-        if ($oldDetail !== (int) $data['detail_status']) {
-            $this->logAdminEvent($invoice, 'detail_changed', $oldDetail, (int) $data['detail_status']);
+        // Доставлено вручную — фиксируем фактическую дату, если её не указали.
+        if ((int) $invoice->status === 3 && $oldStatus !== 3 && empty($invoice->fact_date)) {
+            $invoice->update(['fact_date' => now()]);
         }
-        if ($oldStatus !== (int) $data['status']) {
+
+        if ($oldDetail !== (int) $invoice->detail_status) {
+            $this->logAdminEvent($invoice, 'detail_changed', $oldDetail, (int) $invoice->detail_status);
+        }
+        if ($oldStatus !== (int) $invoice->status) {
             $this->logAdminEvent($invoice, 'status_changed', null, null, [
                 'from_status' => $oldStatus,
-                'to_status' => (int) $data['status'],
+                'to_status' => (int) $invoice->status,
             ]);
         }
         if (isset($data['date']) && (string) $oldDate !== (string) $data['date']) {

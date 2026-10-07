@@ -274,7 +274,7 @@ class CabinetController extends Controller
 
         // Заголовки
         $headers = [
-            'A1' => 'ID', 'B1' => 'Номер накладной', 'C1' => 'Статус', 'D1' => 'Дата',
+            'A1' => 'ID', 'B1' => 'Номер накладной', 'C1' => 'Этап доставки', 'D1' => 'Дата',
             'E1' => 'Отправитель', 'F1' => 'Телефон отправителя', 'G1' => 'Компания отправителя',
             'H1' => 'Город отправителя', 'I1' => 'Страна отправителя', 'J1' => 'Регион отправителя',
             'K1' => 'Район отправителя', 'L1' => 'Адрес отправителя', 'M1' => 'Получатель',
@@ -297,7 +297,7 @@ class CabinetController extends Controller
         foreach ($invoices as $inv) {
             $sheet->setCellValue('A' . $row, $inv->id);
             $sheet->setCellValue('B' . $row, $inv->invoice_number);
-            $sheet->setCellValue('C' . $row, $inv->status);
+            $sheet->setCellValue('C' . $row, $inv->publicStageTitle());
             $sheet->setCellValue('D' . $row, \Carbon\Carbon::parse($inv->date)->format('d.m.Y'));
             $sheet->setCellValue('E' . $row, $inv->sender_name);
             $sheet->setCellValue('F' . $row, $inv->sender_phone);

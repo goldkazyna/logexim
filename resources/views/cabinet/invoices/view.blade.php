@@ -109,16 +109,9 @@ h2 { background-color: #D0171C; color: #ffffff !important; text-align: center; b
                     {{ implode(', ', $methods) }}
                 </div>
 
-                <!-- Статус накладной -->
+                <!-- Этап доставки -->
                 <div class="invoice-data">
-                    <span>Статус:</span>
-                    @switch($invoice->status)
-                        @case(0) Заявка создана @break
-                        @case(1) Принята в работу @break
-                        @case(2) Отправлено @break
-                        @case(3) Исполнено @break
-                        @default Неизвестный статус
-                    @endswitch
+                    <span>Этап доставки:</span> {{ $invoice->publicStageTitle() }}
                 </div>
                 <div class="invoice-data">
                     <span>Особые инструкции:</span> {{ $invoice->special }}

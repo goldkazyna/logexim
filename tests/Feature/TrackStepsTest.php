@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Invoice;
 use App\Models\Staff;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Laravel\Sanctum\Sanctum;
@@ -106,5 +107,76 @@ class TrackStepsTest extends TestCase
 
         $this->assertTrue($inv->refresh()->isLocalDelivery());
         $this->get("/admin/invoices/view/{$inv->id}")->assertOk()->assertSee('получатель в том же городе');
+    }
+
+    private function adminSave(Invoice $inv, array $fields): void
+    {
+        $this->withSession(['admin' => 'admin', 'role' => 'admin', 'roles' => ['admin']])
+            ->post("/admin/invoices/update/{$inv->id}", $fields + ['date' => '2026-10-07', 'payment' => 0])
+            ->assertRedirect();
+        $inv->refresh();
+    }
+
+    public function test_admin_card_has_no_status_field_and_local_stages_follow_checkbox(): void
+    {
+        $inv = $this->invoice(true);
+        $this->withSession(['admin' => 'admin', 'role' => 'admin', 'roles' => ['admin']]);
+
+        $html = $this->get("/admin/invoices/view/{$inv->id}")->assertOk()->getContent();
+        $this->assertStringNotContainsString('name="status"', $html);
+        $this->assertStringNotContainsString('На складе', $html, 'без склада — нет складских этапов');
+        $this->assertStringContainsString('<option value="5"', $html);
+        $this->assertStringContainsString('value="cancel"', $html);
+    }
+
+    public function test_status_follows_stage_and_cancel_is_a_stage_option(): void
+    {
+        $inv = $this->invoice(true);
+
+        $this->adminSave($inv, ['detail_status' => '5', 'same_city' => '1']);
+        $this->assertSame(5, (int) $inv->detail_status);
+        $this->assertSame(2, (int) $inv->status, 'в пути');
+
+        $this->adminSave($inv, ['detail_status' => '6', 'same_city' => '1']);
+        $this->assertSame(3, (int) $inv->status, 'исполнена');
+        $this->assertNotNull($inv->fact_date);
+
+        $this->adminSave($inv, ['detail_status' => 'cancel', 'same_city' => '1']);
+        $this->assertSame(4, (int) $inv->status);
+        $this->assertSame(6, (int) $inv->detail_status, 'этап при отмене не трогаем');
+
+        $this->adminSave($inv, ['detail_status' => '0', 'same_city' => '1']);
+        $this->assertSame(0, (int) $inv->status, 'отмена снята');
+        $this->assertSame(0, (int) $inv->detail_status);
+    }
+
+    public function test_saving_legacy_invoice_without_changes_keeps_it_delivered(): void
+    {
+        $inv = $this->invoice(false);
+        $inv->forceFill(['status' => 3, 'detail_status' => 0])->saveQuietly();
+
+        // В карточке у старой исполненной выбран «Доставлено» (6) — сохраняем как есть.
+        $this->adminSave($inv, ['detail_status' => '6', 'same_city' => '0']);
+        $this->assertSame(3, (int) $inv->status);
+        $this->assertSame(0, (int) $inv->detail_status);
+    }
+
+    public function test_client_cabinet_shows_stage_dots_instead_of_status(): void
+    {
+        $user = User::create([
+            'bin' => '111122223333', 'password' => sha1(md5('x')),
+            'company_name' => 'ТОО', 'director_name' => 'И', 'phone' => '+7', 'email' => 'c@example.com',
+            'address' => '', 'city' => '', 'region' => '', 'country' => '', 'district' => '',
+            'activate' => 1, 'activate_code' => '', 'restore_code' => '', 'date' => now(), 'ip' => '127.0.0.1',
+        ]);
+        $inv = $this->invoice(true);
+        $inv->forceFill(['user_id' => $user->id, 'detail_status' => 5])->saveQuietly();
+
+        $html = $this->withSession(['bin' => '111122223333'])->get('/cabinet/invoices')->assertOk()->getContent();
+        $this->assertStringContainsString('stage-prog__dot', $html);
+        $this->assertStringContainsString('Курьер забрал груз', $html);
+        $this->assertStringNotContainsString('Принята в работу', $html);
+
+        $this->get("/cabinet/view_invoice/{$inv->id}")->assertOk()->assertSee('Этап доставки:')->assertSee('Курьер забрал груз');
     }
 }

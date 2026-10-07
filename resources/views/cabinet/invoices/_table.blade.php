@@ -11,7 +11,7 @@
             <th scope="col" class="px-6 py-3 text-start text-sm text-gray-500">Количество мест</th>
             <th scope="col" class="px-6 py-3 text-start text-sm text-gray-500">Вес (кг)</th>
             <th scope="col" class="px-6 py-3 text-start text-sm text-gray-500">Объявленная ценность</th>
-            <th scope="col" class="px-6 py-3 text-start text-sm text-gray-500">Статус</th>
+            <th scope="col" class="px-6 py-3 text-start text-sm text-gray-500">Этап доставки</th>
             <th scope="col" class="px-6 py-3 text-end text-sm text-gray-500">Действие</th>
         </tr>
     </thead>
@@ -47,14 +47,7 @@
                 {{ $invoice->declared_value }} KZT
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                @switch($invoice->status)
-                    @case(0)<span style="background-color:#00056d; color:#ffffff; padding:10px; border-radius:10px;">Заявка создана</span>@break
-                    @case(1)<span style="background-color:#ffcc00; color:#ffffff; padding:10px; border-radius:10px;">Принята в работу</span>@break
-                    @case(2)<span style="background-color:#00aaff; color:#ffffff; padding:10px; border-radius:10px;">Отправлено</span>@break
-                    @case(3)<span style="background-color:#28a745; color:#ffffff; padding:10px; border-radius:10px;">Исполнена</span>@break
-                    @case(4)<span style="background-color:red; color:#ffffff; padding:10px; border-radius:10px;">Отменена</span>@break
-                    @default Неизвестный статус
-                @endswitch
+                @include('partials.invoice-stage-cell', ['inv' => $invoice, 'public' => true])
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" align="center">
                 <a href="{{ url('cabinet/view_invoice/' . $invoice->id) }}" class="icon-btn"><i class="fas fa-eye"></i></a>
